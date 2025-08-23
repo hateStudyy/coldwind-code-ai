@@ -3,10 +3,10 @@
     <div class="header-container">
       <!-- 左侧：Logo和网站标题 -->
       <div class="header-left">
-        <img src="@/assets/logo.svg" alt="Logo" class="logo" />
+        <img src="@/assets/logo.png" alt="Logo" class="logo" />
         <h1 class="site-title">Coldwind Code AI</h1>
       </div>
-      
+
       <!-- 中间：导航菜单 -->
       <div class="header-center">
         <a-menu
@@ -16,7 +16,7 @@
           class="nav-menu"
         />
       </div>
-      
+
       <!-- 右侧：用户信息 -->
       <div class="header-right">
         <a-button type="primary" @click="handleLogin">
@@ -140,11 +140,11 @@ const handleLogin = () => {
   .header-container {
     padding: 0 16px;
   }
-  
+
   .site-title {
     font-size: 16px;
   }
-  
+
   .header-center {
     display: none; /* 在移动端隐藏菜单 */
   }
