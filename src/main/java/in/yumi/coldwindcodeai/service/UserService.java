@@ -1,9 +1,14 @@
 package in.yumi.coldwindcodeai.service;
 
+import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.service.IService;
+import in.yumi.coldwindcodeai.model.dto.user.UserQueryRequest;
 import in.yumi.coldwindcodeai.model.entity.User;
 import in.yumi.coldwindcodeai.model.vo.LoginUserVO;
+import in.yumi.coldwindcodeai.model.vo.UserVO;
 import jakarta.servlet.http.HttpServletRequest;
+
+import java.util.List;
 
 /**
  * 用户 服务层。
@@ -46,6 +51,30 @@ public interface UserService extends IService<User> {
      * @return 是否注销成功
      */
     boolean userLogout(HttpServletRequest request);
+
+    /**
+     * 获取查询条件
+     *
+     * @param userQueryRequest
+     * @return 查询条件
+     */
+    QueryWrapper getQueryWrapper(UserQueryRequest userQueryRequest);
+
+    /**
+     * 获取脱敏的user视图
+     *
+     * @param user
+     * @return 脱敏后的用户信息
+     */
+    UserVO getUserVO(User user);
+
+    /**
+     * 获取脱敏的user视图列表
+     *
+     * @param userList
+     * @return 脱敏后的用户信息列表
+     */
+    List<UserVO> getUserVOList(List<User> userList);
 
     /**
      * 获取加密密码

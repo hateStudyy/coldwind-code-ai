@@ -11,6 +11,8 @@ server:
   port: 8999
   servlet:
     context-path: /api
+    session:
+      persistent: false
 # springdoc-openapi
 springdoc:
   group-configs:
