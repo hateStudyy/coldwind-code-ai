@@ -16,7 +16,7 @@ export const useLoginUserStore = defineStore('loginUser', () => {
     }
   }
   // 更新登录用户信息
-  function setLoginUser(newLoginUser: never) {
+  function setLoginUser(newLoginUser: { userName: string }) {
     loginUser.value = newLoginUser
   }
 

@@ -20,23 +20,24 @@
       <!-- 右侧：用户信息 -->
       <div class="user-login-status">
         <div v-if="loginUserStore.loginUser.id">
-          <a-space>
-            <a-avatar :src="loginUserStore.loginUser.userAvatar" />
-            {{ loginUserStore.loginUser.userName ?? '无名' }}
-          </a-space>
+          <a-dropdown>
+            <a-space>
+              <a-avatar :src="loginUserStore.loginUser.userAvatar" />
+              {{ loginUserStore.loginUser.userName ?? '无名' }}
+            </a-space>
+            <template #overlay>
+              <a-menu>
+                <a-menu-item @click="doLogout">
+                  <LogoutOutlined />
+                  退出登录
+                </a-menu-item>
+              </a-menu>
+            </template>
+          </a-dropdown>
         </div>
         <div v-else>
           <a-button type="primary" href="/user/login">登录</a-button>
         </div>
-      </div>
-
-      <div v-if="!loginUserStore" class="header-right">
-        <a-button type="primary" @click="handleLogin">
-          <template #icon>
-            <UserOutlined />
-          </template>
-          登录
-        </a-button>
       </div>
     </div>
   </a-layout-header>
@@ -44,15 +45,32 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { UserOutlined } from '@ant-design/icons-vue'
 import { useRouter } from 'vue-router'
+import { LogoutOutlined } from '@ant-design/icons-vue'
+
 
 // JS 中引入 Store
 import { useLoginUserStore } from '@/stores/loginUser.ts'
+import { userLogout } from '@/api/userController.ts'
+import { message } from 'ant-design-vue'
 const loginUserStore = useLoginUserStore()
 
 const router = useRouter()
 const selectedKeys = ref<string[]>(['home'])
+
+// 用户注销
+const doLogout = async () => {
+  const res = await userLogout()
+  if (res.data.code === 0) {
+    loginUserStore.setLoginUser({
+      userName: '未登录',
+    })
+    message.success('退出登录成功')
+    await router.push('/user/login')
+  } else {
+    message.error('退出登录失败，' + res.data.message)
+  }
+}
 
 // 菜单配置
 const menuItems = [
