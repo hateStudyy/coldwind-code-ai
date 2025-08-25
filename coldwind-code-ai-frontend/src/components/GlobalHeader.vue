@@ -13,7 +13,7 @@
           v-model:selectedKeys="selectedKeys"
           mode="horizontal"
           :items="menuItems"
-          class="nav-menu"
+          @click="handleMenuClick"
         />
       </div>
 
@@ -44,15 +44,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref, h } from 'vue' // 添加 h 的导入
 import { useRouter } from 'vue-router'
-import { LogoutOutlined } from '@ant-design/icons-vue'
+import { LogoutOutlined, HomeOutlined } from '@ant-design/icons-vue' // 添加 HomeOutlined 的导入
 
 
 // JS 中引入 Store
 import { useLoginUserStore } from '@/stores/loginUser.ts'
 import { userLogout } from '@/api/userController.ts'
-import { message } from 'ant-design-vue'
+import { type MenuProps, message } from 'ant-design-vue'
 const loginUserStore = useLoginUserStore()
 
 const router = useRouter()
@@ -72,43 +72,53 @@ const doLogout = async () => {
   }
 }
 
-// 菜单配置
-const menuItems = [
+// 菜单配置项
+const originItems = [
   {
-    key: 'home',
-    label: '首页',
-    onClick: () => router.push('/')
+    key: '/',
+    icon: () => h(HomeOutlined),
+    label: '主页',
+    title: '主页',
   },
   {
-    key: 'about',
-    label: '关于',
-    onClick: () => router.push('/about')
+    key: '/admin/userManage',
+    label: '用户管理',
+    title: '用户管理',
   },
   {
-    key: 'features',
-    label: '功能',
-    children: [
-      {
-        key: 'code-analysis',
-        label: '代码分析'
-      },
-      {
-        key: 'ai-assistant',
-        label: 'AI助手'
-      }
-    ]
+    key: 'others',
+    label: h('a', { href: 'https://github.com/hateStudyy', target: '_blank' }, 'coldwind-github'),
+    title: 'github',
   },
-  {
-    key: 'docs',
-    label: '文档'
-  }
 ]
 
-// 处理登录
-const handleLogin = () => {
-  console.log('登录按钮被点击')
-  // 这里可以添加登录逻辑
+// 过滤菜单项
+const filterMenus = (menus = [] as MenuProps['items']) => {
+  return menus?.filter((menu) => {
+    const menuKey = menu?.key as string
+    if (menuKey?.startsWith('/admin')) {
+      const loginUser = loginUserStore.loginUser
+      if (!loginUser || loginUser.userRole !== 'admin') {
+        return false
+      }
+    }
+    return true
+  })
 }
+
+// 处理菜单点击
+const handleMenuClick: MenuProps['onClick'] = (e) => {
+  const key = e.key as string
+  selectedKeys.value = [key]
+  // 跳转到对应页面
+  if (key.startsWith('/')) {
+    router.push(key)
+  }
+}
+
+// 展示在菜单的路由数组
+const menuItems = computed<MenuProps['items']>(() => filterMenus(originItems))
+
 </script>
 
 <style scoped>
