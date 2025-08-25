@@ -16,16 +16,11 @@
     <!-- 表格 -->
   </div>
 
-  <a-table
-    :columns="columns"
-    :data-source="data"
-    :pagination="pagination"
-    @change="doTableChange"
-  >
-  <template #headerCell="{ column }">
+  <a-table :columns="columns" :data-source="data" :pagination="pagination" @change="doTableChange">
+    <template #headerCell="{ column }">
       <template v-if="column.key === 'name'">
         <span>
-          <smile-outlined />
+          <SmileOutlined />
           Name
         </span>
       </template>
@@ -34,6 +29,30 @@
     <template #bodyCell="{ column, record }">
       <template v-if="column.dataIndex === 'userAvatar'">
         <a-image :src="record.userAvatar" :width="120" />
+      </template>
+      <template v-else-if="column.dataIndex === 'userName'">
+        <div>
+          <a-input
+            v-if="editableData[record.id]"
+            v-model:value="editableData[record.id].userName"
+            style="margin: -5px 0"
+          />
+          <template v-else>
+            {{ record.userName }}
+          </template>
+        </div>
+      </template>
+      <template v-else-if="column.dataIndex === 'userProfile'">
+        <div>
+          <a-input
+            v-if="editableData[record.id]"
+            v-model:value="editableData[record.id].userProfile"
+            style="margin: -5px 0"
+          />
+          <template v-else>
+            {{ record.userProfile }}
+          </template>
+        </div>
       </template>
       <template v-else-if="column.dataIndex === 'userRole'">
         <div v-if="record.userRole === 'admin'">
@@ -47,19 +66,31 @@
         {{ dayjs(record.createTime).format('YYYY-MM-DD HH:mm:ss') }}
       </template>
       <template v-else-if="column.key === 'action'">
-        <a-button danger @click="doDelete(record.id)">删除</a-button>
+        <div class="editable-row-operations">
+          <span v-if="editableData[record.id]">
+            <a-typography-link @click="save(record.id)">保存</a-typography-link>
+            <a-popconfirm title="确定取消编辑？" @confirm="cancel(record.id)">
+              <a>取消</a>
+            </a-popconfirm>
+          </span>
+          <span v-else>
+            <a @click="edit(record)">编辑</a>
+            <a-button danger size="small" style="margin-left: 8px" @click="doDelete(record.id)"
+              >删除</a-button
+            >
+          </span>
+        </div>
       </template>
     </template>
-
   </a-table>
 </template>
 <script lang="ts" setup>
-import { SmileOutlined, DownOutlined } from '@ant-design/icons-vue';
+import { SmileOutlined } from '@ant-design/icons-vue'
 import { computed, onMounted, reactive, ref } from 'vue'
 import { message } from 'ant-design-vue'
-import { deleteUser, listUserVoByPage } from '@/api/userController.ts'
+import { deleteUser, listUserVoByPage, updateUser } from '@/api/userController.ts'
 import dayjs from 'dayjs'
-
+import { cloneDeep } from 'lodash-es'
 
 // 数据
 const data = ref<API.UserVO[]>([])
@@ -83,7 +114,7 @@ const pagination = computed(() => {
 })
 
 // 表格变化处理
-const doTableChange = (page: any) => {
+const doTableChange = (page: { current: number; pageSize: number }) => {
   searchParams.pageNum = page.current
   searchParams.pageSize = page.pageSize
   fetchData()
@@ -97,7 +128,7 @@ const doSearch = () => {
 }
 
 // 删除数据
-const doDelete = async (id: string) => {
+const doDelete = async (id: number) => {
   if (!id) {
     return
   }
@@ -111,6 +142,39 @@ const doDelete = async (id: string) => {
   }
 }
 
+// 可编辑行数据缓存（按主键 id 存储）
+const editableData: Record<number, Partial<API.UserVO>> = reactive({})
+
+const edit = (record: API.UserVO) => {
+  if (!record?.id) return
+  editableData[record.id] = cloneDeep({
+    userName: record.userName,
+    userProfile: record.userProfile,
+  })
+}
+
+const save = async (id: number) => {
+  if (!editableData[id]) return
+  const payload: API.UserUpdateRequest = {
+    id,
+    userName: editableData[id].userName,
+    userProfile: editableData[id].userProfile,
+  }
+  const res = await updateUser(payload)
+  if (res.data.code === 0 && res.data.data) {
+    message.success('保存成功')
+    delete editableData[id]
+    fetchData()
+  } else {
+    message.error('保存失败，' + res.data.message)
+  }
+}
+
+const cancel = (id: number) => {
+  if (editableData[id]) {
+    delete editableData[id]
+  }
+}
 
 const columns = [
   {
@@ -166,3 +230,8 @@ onMounted(() => {
 })
 </script>
 
+<style scoped>
+.editable-row-operations a {
+  margin-right: 8px;
+}
+</style>
