@@ -2,12 +2,12 @@
   <a-layout class="basic-layout">
     <!-- 头部导航 -->
     <GlobalHeader />
-    
+
     <!-- 内容区域 -->
     <a-layout-content class="layout-content">
-      <RouterView />
+      <router-view />
     </a-layout-content>
-    
+
     <!-- 底部版权 -->
     <GlobalFooter />
   </a-layout>

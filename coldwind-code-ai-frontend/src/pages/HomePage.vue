@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { healthCheck } from '@/api/healthController.ts'
+import { useLoginUserStore } from '@/stores/loginUser.ts'
+
+const loginUserStore = useLoginUserStore();
 
 healthCheck().then((res) => {
   console.log(res)
@@ -9,6 +12,11 @@ healthCheck().then((res) => {
 
 <template>
   <main>
-    <TheWelcome />
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    {{ JSON.stringify(loginUserStore.loginUser) }}
   </main>
 </template>

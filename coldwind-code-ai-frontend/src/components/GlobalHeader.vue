@@ -18,7 +18,19 @@
       </div>
 
       <!-- 右侧：用户信息 -->
-      <div class="header-right">
+      <div class="user-login-status">
+        <div v-if="loginUserStore.loginUser.id">
+          <a-space>
+            <a-avatar :src="loginUserStore.loginUser.userAvatar" />
+            {{ loginUserStore.loginUser.userName ?? '无名' }}
+          </a-space>
+        </div>
+        <div v-else>
+          <a-button type="primary" href="/user/login">登录</a-button>
+        </div>
+      </div>
+
+      <div v-if="!loginUserStore" class="header-right">
         <a-button type="primary" @click="handleLogin">
           <template #icon>
             <UserOutlined />
@@ -34,6 +46,10 @@
 import { ref } from 'vue'
 import { UserOutlined } from '@ant-design/icons-vue'
 import { useRouter } from 'vue-router'
+
+// JS 中引入 Store
+import { useLoginUserStore } from '@/stores/loginUser.ts'
+const loginUserStore = useLoginUserStore()
 
 const router = useRouter()
 const selectedKeys = ref<string[]>(['home'])
