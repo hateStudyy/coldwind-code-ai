@@ -27,13 +27,15 @@ import GlobalFooter from '@/components/GlobalFooter.vue'
 .layout-content {
   padding: 24px;
   background: #fff;
-  min-height: calc(100vh - 64px - 70px); /* 减去头部和底部的高度 */
+  min-height: calc(100vh - 64px - 70px);
+  margin-top: 64px; /* 添加这一行，值与header高度一致 */
 }
 
 /* 响应式设计 */
 @media (max-width: 768px) {
   .layout-content {
     padding: 16px;
+    margin-top: 64px; /* 移动端也需要保持一致 */
   }
 }
 </style>
