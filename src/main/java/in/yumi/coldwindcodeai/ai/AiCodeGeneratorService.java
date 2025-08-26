@@ -1,6 +1,9 @@
 package in.yumi.coldwindcodeai.ai;
 
 import dev.langchain4j.service.SystemMessage;
+import in.yumi.coldwindcodeai.ai.model.HtmlCodeResult;
+import in.yumi.coldwindcodeai.ai.model.MultiFileCodeResult;
+import reactor.core.publisher.Flux;
 
 public interface AiCodeGeneratorService {
 
@@ -11,7 +14,7 @@ public interface AiCodeGeneratorService {
      * @return 生成的代码结果
      */
     @SystemMessage(fromResource = "prompt/codegen-html-system-prompt.txt")
-    String generateHtmlCode(String userMessage);
+    HtmlCodeResult generateHtmlCode(String userMessage);
 
     /**
      * 生成多文件代码
@@ -20,5 +23,24 @@ public interface AiCodeGeneratorService {
      * @return 生成的代码结果
      */
     @SystemMessage(fromResource = "prompt/codegen-multi-file-system-prompt.txt")
-    String generateMultiFileCode(String userMessage);
+    MultiFileCodeResult generateMultiFileCode(String userMessage);
+
+    /**
+     * 生成 HTML 代码（流式）
+     *
+     * @param userMessage 用户消息
+     * @return 生成的代码结果
+     */
+    @SystemMessage(fromResource = "prompt/codegen-html-system-prompt.txt")
+    Flux<String> generateHtmlCodeStream(String userMessage);
+
+    /**
+     * 生成多文件代码（流式）
+     *
+     * @param userMessage 用户消息
+     * @return 生成的代码结果
+     */
+    @SystemMessage(fromResource = "prompt/codegen-multi-file-system-prompt.txt")
+    Flux<String> generateMultiFileCodeStream(String userMessage);
+
 }
