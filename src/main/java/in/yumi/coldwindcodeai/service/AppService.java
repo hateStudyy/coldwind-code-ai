@@ -4,7 +4,9 @@ import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.service.IService;
 import in.yumi.coldwindcodeai.model.dto.app.AppQueryRequest;
 import in.yumi.coldwindcodeai.model.entity.App;
+import in.yumi.coldwindcodeai.model.entity.User;
 import in.yumi.coldwindcodeai.model.vo.AppVO;
+import reactor.core.publisher.Flux;
 
 import java.util.List;
 
@@ -14,6 +16,8 @@ import java.util.List;
  * @author <a href="https://github.com/liyupi">程序员鱼皮</a>
  */
 public interface AppService extends IService<App> {
+
+    Flux<String> chatToGenCode(Long appId, String message, User loginUser);
 
     /**
      * 获取应用封装类
