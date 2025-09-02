@@ -48,7 +48,6 @@ import { computed, ref, h } from 'vue' // 添加 h 的导入
 import { useRouter } from 'vue-router'
 import { LogoutOutlined, HomeOutlined } from '@ant-design/icons-vue' // 添加 HomeOutlined 的导入
 
-
 // JS 中引入 Store
 import { useLoginUserStore } from '@/stores/loginUser.ts'
 import { userLogout } from '@/api/userController.ts'
@@ -86,6 +85,11 @@ const originItems = [
     title: '用户管理',
   },
   {
+    key: '/admin/appManage',
+    label: '应用管理',
+    title: '应用管理',
+  },
+  {
     key: 'others',
     label: h('a', { href: 'https://github.com/hateStudyy', target: '_blank' }, 'coldwind-github'),
     title: 'github',
@@ -118,7 +122,6 @@ const handleMenuClick: MenuProps['onClick'] = (e) => {
 
 // 展示在菜单的路由数组
 const menuItems = computed<MenuProps['items']>(() => filterMenus(originItems))
-
 </script>
 
 <style scoped>
