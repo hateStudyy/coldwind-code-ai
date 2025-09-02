@@ -1,11 +1,15 @@
 package in.yumi.coldwindcodeai.ai;
 
+import dev.langchain4j.service.MemoryId;
 import dev.langchain4j.service.SystemMessage;
+import dev.langchain4j.service.UserMessage;
 import in.yumi.coldwindcodeai.ai.model.HtmlCodeResult;
 import in.yumi.coldwindcodeai.ai.model.MultiFileCodeResult;
 import reactor.core.publisher.Flux;
 
 public interface AiCodeGeneratorService {
+
+    HtmlCodeResult generateHtmlCode(@MemoryId int memoryId, @UserMessage String userMessage);
 
     /**
      * 生成 HTML 代码
