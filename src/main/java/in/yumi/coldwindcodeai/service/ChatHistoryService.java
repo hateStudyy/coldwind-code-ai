@@ -3,6 +3,7 @@ package in.yumi.coldwindcodeai.service;
 import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.service.IService;
+import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import in.yumi.coldwindcodeai.model.dto.chathistory.ChatHistoryQueryRequest;
 import in.yumi.coldwindcodeai.model.entity.ChatHistory;
 import in.yumi.coldwindcodeai.model.entity.User;
@@ -15,6 +16,8 @@ import java.time.LocalDateTime;
  * @author coldwind
  */
 public interface ChatHistoryService extends IService<ChatHistory> {
+
+    int loadChatHistoryToMemory(Long appId, MessageWindowChatMemory chatMemory, int maxCount);
 
     boolean addChatMessage(Long appId, String message, String messageType, Long userId);
 
