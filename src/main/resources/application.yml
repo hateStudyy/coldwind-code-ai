@@ -3,6 +3,11 @@ spring:
     active: local
   application:
     name: coldwind-code-ai
+  # session ??
+  session:
+    store-type: redis
+    # session 30 ???
+    timeout: 2592000
   # mysql
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -21,6 +26,8 @@ server:
   servlet:
     context-path: /api
     session:
+      cookie:
+        max-age: 2592000
       persistent: false
 # springdoc-openapi
 springdoc:
