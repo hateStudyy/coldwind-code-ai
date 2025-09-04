@@ -1,7 +1,6 @@
 package in.yumi.coldwindcodeai.core;
 
 import in.yumi.coldwindcodeai.ai.model.enums.CodeGenTypeEnum;
-import in.yumi.coldwindcodeai.core.AiCodeGeneratorFacade;
 import jakarta.annotation.Resource;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

@@ -19,7 +19,6 @@ import in.yumi.coldwindcodeai.model.entity.ChatHistory;
 import in.yumi.coldwindcodeai.service.ChatHistoryService;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 /**
  * 对话历史 控制层。

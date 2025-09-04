@@ -137,7 +137,7 @@ public class AiServiceTokenStream implements TokenStream {
                 .chatRequest(chatRequest)
                 .build();
 
-        var handler = new dev.langchain4j.service.AiServiceStreamingResponseHandler(
+        var handler = new AiServiceStreamingResponseHandler(
                 chatExecutor,
                 context,
                 memoryId,

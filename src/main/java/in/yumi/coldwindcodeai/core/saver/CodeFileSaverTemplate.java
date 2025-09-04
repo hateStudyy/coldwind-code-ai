@@ -1,7 +1,6 @@
 package in.yumi.coldwindcodeai.core.saver;
 
 import cn.hutool.core.io.FileUtil;
-import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import in.yumi.coldwindcodeai.ai.model.enums.CodeGenTypeEnum;
 import in.yumi.coldwindcodeai.constant.AppConstant;

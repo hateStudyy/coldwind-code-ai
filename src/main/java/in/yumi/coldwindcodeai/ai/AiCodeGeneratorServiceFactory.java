@@ -8,7 +8,6 @@ import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.service.AiServices;
-import in.yumi.coldwindcodeai.ai.AiCodeGeneratorService;
 import in.yumi.coldwindcodeai.ai.model.enums.CodeGenTypeEnum;
 import in.yumi.coldwindcodeai.ai.tools.FileWriteTool;
 import in.yumi.coldwindcodeai.exception.BusinessException;
@@ -113,9 +112,6 @@ public class AiCodeGeneratorServiceFactory {
                     "不支持的代码生成类型: " + codeGenType.getValue());
         };
     }
-
-
-
     /**
      * 默认提供一个 Bean
      */
