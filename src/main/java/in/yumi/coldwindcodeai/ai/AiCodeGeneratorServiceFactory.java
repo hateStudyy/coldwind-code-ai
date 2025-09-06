@@ -9,7 +9,7 @@ import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.service.AiServices;
 import in.yumi.coldwindcodeai.ai.model.enums.CodeGenTypeEnum;
-import in.yumi.coldwindcodeai.ai.tools.FileWriteTool;
+import in.yumi.coldwindcodeai.ai.tools.*;
 import in.yumi.coldwindcodeai.exception.BusinessException;
 import in.yumi.coldwindcodeai.exception.ErrorCode;
 import in.yumi.coldwindcodeai.service.ChatHistoryService;
@@ -97,11 +97,18 @@ public class AiCodeGeneratorServiceFactory {
             case VUE_PROJECT -> AiServices.builder(AiCodeGeneratorService.class)
                     .streamingChatModel(reasoningStreamingChatModel)
                     .chatMemoryProvider(memoryId -> chatMemory)
-                    .tools(new FileWriteTool())
+                    .tools(
+                            new FileWriteTool(),
+                            new FileReadTool(),
+                            new FileModifyTool(),
+                            new FileDirReadTool(),
+                            new FileDeleteTool()
+                    )
                     .hallucinatedToolNameStrategy(toolExecutionRequest -> ToolExecutionResultMessage.from(
                             toolExecutionRequest, "Error: there is no tool called " + toolExecutionRequest.name()
                     ))
                     .build();
+
             // HTML 和多文件生成使用默认模型
             case HTML, MULTI_FILE -> AiServices.builder(AiCodeGeneratorService.class)
                     .chatModel(chatModel)
