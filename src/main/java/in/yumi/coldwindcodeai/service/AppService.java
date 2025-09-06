@@ -2,6 +2,7 @@ package in.yumi.coldwindcodeai.service;
 
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.service.IService;
+import in.yumi.coldwindcodeai.model.dto.app.AppAddRequest;
 import in.yumi.coldwindcodeai.model.dto.app.AppQueryRequest;
 import in.yumi.coldwindcodeai.model.entity.App;
 import in.yumi.coldwindcodeai.model.entity.User;
@@ -25,6 +26,8 @@ public interface AppService extends IService<App> {
      * @return
      */
     String deployApp(Long appId, User loginUser);
+
+    Long createApp(AppAddRequest appAddRequest, User loginUser);
 
     /**
      * 聊天生成代码
