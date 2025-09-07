@@ -1,5 +1,6 @@
 package in.yumi.coldwindcodeai.ai.tools;
 
+import cn.hutool.json.JSONObject;
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
 import dev.langchain4j.agent.tool.ToolMemoryId;
@@ -16,7 +17,7 @@ import java.nio.file.Paths;
  * 支持 AI 通过工具调用的方式读取文件内容
  */
 @Slf4j
-public class FileReadTool {
+public class FileReadTool extends BaseTool{
 
     @Tool("读取指定路径的文件内容")
     public String readFile(
@@ -40,5 +41,24 @@ public class FileReadTool {
             log.error(errorMessage, e);
             return errorMessage;
         }
+    }
+
+    @Override
+    public String getToolName() {
+        return "readFile";
+    }
+
+    @Override
+    public String getDisplayName() {
+        return "读取文件";
+    }
+
+    @Override
+    public String generateToolExecutedResult(JSONObject arguments) {
+        String relativeFilePath = arguments.getStr("relativeFilePath");
+        String oldContent = arguments.getStr("oldContent");
+        String newContent = arguments.getStr("newContent");
+        // 显示对比内容
+        return String.format("[工具调用] %s %s", getDisplayName(), relativeFilePath);
     }
 }
