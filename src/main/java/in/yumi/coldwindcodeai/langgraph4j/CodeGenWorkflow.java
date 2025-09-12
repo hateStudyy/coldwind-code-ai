@@ -40,8 +40,15 @@ public class CodeGenWorkflow {
                     .addEdge("image_collector", "prompt_enhancer")
                     .addEdge("prompt_enhancer", "router")
                     .addEdge("router", "code_generator")
-                    .addEdge("code_generator", "project_builder")
+                    // 使用条件边：根据代码生成类型决定是否需要构建
+                    .addConditionalEdges("code_generator",
+                            edge_async(this::routeBuildOrSkip),
+                            Map.of(
+                                    "build", "project_builder",  // 需要构建的情况
+                                    "skip_build", END             // 跳过构建直接结束
+                            ))
                     .addEdge("project_builder", END)
+
 
                     // 编译工作流
                     .compile();
