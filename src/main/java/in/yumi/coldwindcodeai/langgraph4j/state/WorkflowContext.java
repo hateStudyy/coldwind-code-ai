@@ -2,6 +2,7 @@ package in.yumi.coldwindcodeai.langgraph4j.state;
 
 import in.yumi.coldwindcodeai.ai.model.enums.CodeGenTypeEnum;
 import in.yumi.coldwindcodeai.langgraph4j.model.ImageResource;
+import in.yumi.coldwindcodeai.langgraph4j.model.QualityResult;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -66,6 +67,11 @@ public class WorkflowContext implements Serializable {
      * 构建成功的目录
      */
     private String buildResultDir;
+
+    /**
+     * 质量检查结果
+     */
+    private QualityResult qualityResult;
 
     /**
      * 错误信息
