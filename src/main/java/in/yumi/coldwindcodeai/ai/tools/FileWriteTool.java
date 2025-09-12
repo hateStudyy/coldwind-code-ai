@@ -7,6 +7,7 @@ import dev.langchain4j.agent.tool.Tool;
 import dev.langchain4j.agent.tool.ToolMemoryId;
 import in.yumi.coldwindcodeai.constant.AppConstant;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -19,6 +20,7 @@ import java.nio.file.StandardOpenOption;
  * 支持 AI 通过工具调用的方式写入文件
  */
 @Slf4j
+@Component
 public class FileWriteTool extends BaseTool {
 
     @Tool("写入文件到指定路径")
@@ -71,13 +73,11 @@ public class FileWriteTool extends BaseTool {
         String relativeFilePath = arguments.getStr("relativeFilePath");
         String suffix = FileUtil.getSuffix(relativeFilePath);
         String content = arguments.getStr("content");
-        // 显示对比内容
         return String.format("""
                         [工具调用] %s %s
                         ```%s
                         %s
                         ```
-                        """
-                , getDisplayName(), relativeFilePath, suffix, content);
+                        """, getDisplayName(), relativeFilePath, suffix, content);
     }
 }

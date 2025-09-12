@@ -6,6 +6,7 @@ import dev.langchain4j.agent.tool.Tool;
 import dev.langchain4j.agent.tool.ToolMemoryId;
 import in.yumi.coldwindcodeai.constant.AppConstant;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -17,7 +18,8 @@ import java.nio.file.Paths;
  * 支持 AI 通过工具调用的方式读取文件内容
  */
 @Slf4j
-public class FileReadTool extends BaseTool{
+@Component
+public class FileReadTool extends BaseTool {
 
     @Tool("读取指定路径的文件内容")
     public String readFile(
@@ -56,9 +58,6 @@ public class FileReadTool extends BaseTool{
     @Override
     public String generateToolExecutedResult(JSONObject arguments) {
         String relativeFilePath = arguments.getStr("relativeFilePath");
-        String oldContent = arguments.getStr("oldContent");
-        String newContent = arguments.getStr("newContent");
-        // 显示对比内容
         return String.format("[工具调用] %s %s", getDisplayName(), relativeFilePath);
     }
-}
+} 

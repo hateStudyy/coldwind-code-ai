@@ -19,7 +19,8 @@ import java.nio.file.StandardOpenOption;
  * 支持 AI 通过工具调用的方式修改文件内容
  */
 @Slf4j
-public class FileModifyTool extends BaseTool{
+@Component
+public class FileModifyTool extends BaseTool {
 
     @Tool("修改文件内容，用新内容替换指定的旧内容")
     public String modifyFile(
@@ -58,8 +59,6 @@ public class FileModifyTool extends BaseTool{
             return errorMessage;
         }
     }
-
-    // 核心方法不变，此处省略
 
     @Override
     public String getToolName() {
