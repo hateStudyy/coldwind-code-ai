@@ -1,6 +1,7 @@
 package in.yumi.coldwindcodeai.langgraph4j.state;
 
 import in.yumi.coldwindcodeai.ai.model.enums.CodeGenTypeEnum;
+import in.yumi.coldwindcodeai.langgraph4j.model.ImageResource;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

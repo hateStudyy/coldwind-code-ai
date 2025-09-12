@@ -1,8 +1,7 @@
 package in.yumi.coldwindcodeai.langgraph4j.tools;
 
-import in.yumi.coldwindcodeai.langgraph4j.state.ImageCategoryEnum;
-import in.yumi.coldwindcodeai.langgraph4j.state.ImageResource;
-import in.yumi.coldwindcodeai.langgraph4j.tools.UndrawIllustrationTool;
+import in.yumi.coldwindcodeai.langgraph4j.model.ImageResource;
+import in.yumi.coldwindcodeai.langgraph4j.model.enums.ImageCategoryEnum;
 import jakarta.annotation.Resource;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
