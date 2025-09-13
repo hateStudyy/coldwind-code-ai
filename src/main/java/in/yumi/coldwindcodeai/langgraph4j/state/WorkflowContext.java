@@ -1,6 +1,7 @@
 package in.yumi.coldwindcodeai.langgraph4j.state;
 
 import in.yumi.coldwindcodeai.ai.model.enums.CodeGenTypeEnum;
+import in.yumi.coldwindcodeai.langgraph4j.model.ImageCollectionPlan;
 import in.yumi.coldwindcodeai.langgraph4j.model.ImageResource;
 import in.yumi.coldwindcodeai.langgraph4j.model.QualityResult;
 import lombok.AllArgsConstructor;
@@ -74,9 +75,23 @@ public class WorkflowContext implements Serializable {
     private QualityResult qualityResult;
 
     /**
+     * 图片收集计划
+     */
+    private ImageCollectionPlan imageCollectionPlan;
+
+    /**
      * 错误信息
      */
     private String errorMessage;
+
+
+    /**
+     * 并发图片收集的中间结果字段
+     */
+    private List<ImageResource> contentImages;
+    private List<ImageResource> illustrations;
+    private List<ImageResource> diagrams;
+    private List<ImageResource> logos;
 
     @Serial
     private static final long serialVersionUID = 1L;
