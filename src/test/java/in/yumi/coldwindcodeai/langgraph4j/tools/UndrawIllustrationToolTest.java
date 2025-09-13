@@ -19,7 +19,7 @@ class UndrawIllustrationToolTest {
     @Test
     void testSearchIllustrations() {
         // 测试正常搜索插画
-        List<ImageResource> illustrations = undrawIllustrationTool.searchIllustrations("sad");
+        List<ImageResource> illustrations = undrawIllustrationTool.searchIllustrations("confident");
         assertNotNull(illustrations);
         // 验证返回的插画资源
         ImageResource firstIllustration = illustrations.get(0);
