@@ -20,6 +20,8 @@ import in.yumi.coldwindcodeai.model.dto.app.*;
 import in.yumi.coldwindcodeai.model.entity.App;
 import in.yumi.coldwindcodeai.model.entity.User;
 import in.yumi.coldwindcodeai.model.vo.AppVO;
+import in.yumi.coldwindcodeai.ratelimiter.annotation.RateLimit;
+import in.yumi.coldwindcodeai.ratelimiter.enums.RateLimitType;
 import in.yumi.coldwindcodeai.service.AppService;
 import in.yumi.coldwindcodeai.service.ProjectDownloadService;
 import in.yumi.coldwindcodeai.service.UserService;
@@ -86,6 +88,7 @@ public class AppController {
 
 
     @GetMapping(value = "/chat/gen/code", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @RateLimit(limitType = RateLimitType.USER, rate = 5, rateInterval = 60, message = "AI 对话请求过于频繁，请稍后再试")
     public Flux<ServerSentEvent<String>> chatToGenCode(@RequestParam Long appId,
                                                        @RequestParam String message,
                                                        HttpServletRequest request) {
