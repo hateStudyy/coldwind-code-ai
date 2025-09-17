@@ -93,9 +93,9 @@ public class AiCodeGeneratorServiceFactory {
                 .build();
         // 从数据库加载历史对话到记忆中
         chatHistoryService.loadChatHistoryToMemory(appId, chatMemory, 20);
-        OutputGuardrailsConfig outputGuardrailsConfig = OutputGuardrailsConfig.builder()
-                .maxRetries(3)
-                .build();
+//        OutputGuardrailsConfig outputGuardrailsConfig = OutputGuardrailsConfig.builder()
+//                .maxRetries(3)
+//                .build();
         // 根据代码生成类型选择不同的模型配置
         return switch (codeGenType) {
             case VUE_PROJECT -> {
@@ -107,8 +107,8 @@ public class AiCodeGeneratorServiceFactory {
                         .tools(toolManager.getAllTools())
                         .maxSequentialToolsInvocations(20)  // 最多连续调用 20 次工具
                         .inputGuardrails(new PromptSafetyInputGuardrail())  // 添加输入护轨
-                        .outputGuardrails(new RetryOutputGuardrail())
-                        .outputGuardrailsConfig(outputGuardrailsConfig)
+//                        .outputGuardrails(new RetryOutputGuardrail())
+//                        .outputGuardrailsConfig(outputGuardrailsConfig)
                         .hallucinatedToolNameStrategy(toolExecutionRequest -> ToolExecutionResultMessage.from(
                                 toolExecutionRequest, "Error: there is no tool called " + toolExecutionRequest.name()
                         ))
@@ -123,8 +123,8 @@ public class AiCodeGeneratorServiceFactory {
                         .chatMemory(chatMemory)
                         .maxSequentialToolsInvocations(20)  // 最多连续调用 20 次工具
                         .inputGuardrails(new PromptSafetyInputGuardrail())  // 添加输入护轨
-                        .outputGuardrails(new RetryOutputGuardrail())
-                        .outputGuardrailsConfig(outputGuardrailsConfig)
+//                        .outputGuardrails(new RetryOutputGuardrail())
+//                        .outputGuardrailsConfig(outputGuardrailsConfig)
                         .build();
             }
             default -> throw new BusinessException(ErrorCode.SYSTEM_ERROR,
