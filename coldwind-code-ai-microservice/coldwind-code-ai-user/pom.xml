@@ -29,7 +29,7 @@
         </dependency>
         <dependency>
             <groupId>in.yumi</groupId>
-            <artifactId>coldwind-code-ai-model</artifactId>
+            <artifactId>coldwind-code-ai-client</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
         <!-- Spring Session + Redis -->
