@@ -13,10 +13,9 @@ import in.yumi.coldwindcodeai.model.dto.chathistory.ChatHistoryQueryRequest;
 import in.yumi.coldwindcodeai.model.entity.ChatHistory;
 import in.yumi.coldwindcodeai.model.entity.User;
 import in.yumi.coldwindcodeai.service.ChatHistoryService;
-import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
+import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -33,8 +32,7 @@ public class ChatHistoryController {
     @Autowired
     private ChatHistoryService chatHistoryService;
 
-    @Resource
-    @Lazy
+    @DubboReference
     private InnerUserService userService;
 
     /**

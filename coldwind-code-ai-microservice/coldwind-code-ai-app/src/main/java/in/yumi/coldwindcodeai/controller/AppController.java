@@ -27,6 +27,7 @@ import in.yumi.coldwindcodeai.service.ProjectDownloadService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.MediaType;
@@ -52,8 +53,7 @@ public class AppController {
     @Resource
     private AppService appService;
 
-    @Resource
-    @Lazy
+    @DubboReference
     private InnerUserService userService;
 
     @Resource
