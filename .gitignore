@@ -32,6 +32,13 @@ build/
 ### VS Code ###
 .vscode/
 
+### macOS ###
+.DS_Store
+**/.DS_Store
+
+### Test Artifacts ###
+Test Results*
+
 ### CUSTOM ###
 application-local.yml
 application-prod.yml
