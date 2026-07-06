@@ -47,7 +47,7 @@ const fetchAppInfo = async () => {
 
   loading.value = true
   try {
-    const res = await getAppVoById({ id: parseInt(appId.value) })
+    const res = await getAppVoById({ id: appId.value })
     if (res.data.code === 0) {
       appData.value = res.data.data!
       // 如果有初始提示词，自动发送给AI
@@ -142,8 +142,10 @@ const generateCode = async (userMessage: string, aiMessageId: string) => {
 
           try {
             const parsed = JSON.parse(data)
-            if (parsed.content) {
-              fullContent += parsed.content
+            // 后端 SSE 数据格式为 {"d": "内容"}，兼容 {"content": "..."} 格式
+            const chunkContent = parsed.d || parsed.content
+            if (chunkContent) {
+              fullContent += chunkContent
               // 更新AI消息内容
               const aiMessage = messages.value.find((msg) => msg.id === aiMessageId)
               if (aiMessage) {
@@ -178,7 +180,7 @@ const handleDeploy = async () => {
 
   deployLoading.value = true
   try {
-    const res = await deployApp({ appId: parseInt(appId.value) })
+    const res = await deployApp({ appId: appId.value })
     if (res.data.code === 0) {
       deployUrl.value = res.data.data!
       message.success('部署成功！')

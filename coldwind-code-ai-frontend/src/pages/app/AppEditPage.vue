@@ -39,7 +39,7 @@ const fetchAppInfo = async () => {
 
   loading.value = true
   try {
-    const res = await getAppVoById({ id: parseInt(appId.value) })
+    const res = await getAppVoById({ id: appId.value })
     if (res.data.code === 0) {
       appData.value = res.data.data!
       // 初始化表单数据
