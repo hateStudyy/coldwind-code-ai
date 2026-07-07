@@ -20,7 +20,7 @@ public interface AiCodeGeneratorService {
     TokenStream generateVueProjectCodeStream(@MemoryId long appId, @UserMessage String userMessage);
 
 
-    HtmlCodeResult generateHtmlCode(@MemoryId int memoryId, @UserMessage String userMessage);
+    HtmlCodeResult generateHtmlCode(@MemoryId long memoryId, @UserMessage String userMessage);
 
     /**
      * 生成 HTML 代码
@@ -28,7 +28,7 @@ public interface AiCodeGeneratorService {
      * @param userMessage 用户消息
      * @return 生成的代码结果
      */
-    @SystemMessage(fromResource = "prompt/codegen-html-system-prompt.txt")
+    @SystemMessage(fromResource = "prompt/codegen-html-pojo-system-prompt.txt")
     HtmlCodeResult generateHtmlCode(String userMessage);
 
     /**
@@ -37,7 +37,7 @@ public interface AiCodeGeneratorService {
      * @param userMessage 用户消息
      * @return 生成的代码结果
      */
-    @SystemMessage(fromResource = "prompt/codegen-multi-file-system-prompt.txt")
+    @SystemMessage(fromResource = "prompt/codegen-multi-file-pojo-system-prompt.txt")
     MultiFileCodeResult generateMultiFileCode(String userMessage);
 
     /**

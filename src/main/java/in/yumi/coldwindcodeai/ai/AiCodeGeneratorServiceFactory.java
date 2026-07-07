@@ -120,7 +120,7 @@ public class AiCodeGeneratorServiceFactory {
                 yield AiServices.builder(AiCodeGeneratorService.class)
                         .chatModel(chatModel)
                         .streamingChatModel(openAiStreamingChatModel)
-                        .chatMemory(chatMemory)
+                        .chatMemoryProvider(memoryId -> chatMemory)
                         .maxSequentialToolsInvocations(20)  // 最多连续调用 20 次工具
                         .inputGuardrails(new PromptSafetyInputGuardrail())  // 添加输入护轨
 //                        .outputGuardrails(new RetryOutputGuardrail())
