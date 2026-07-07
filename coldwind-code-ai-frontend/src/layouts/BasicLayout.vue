@@ -1,41 +1,30 @@
 <template>
   <a-layout class="basic-layout">
-    <!-- 头部导航 -->
+    <!-- 顶部导航栏 -->
     <GlobalHeader />
-
-    <!-- 内容区域 -->
-    <a-layout-content class="layout-content">
+    <!-- 主要内容区域 -->
+    <a-layout-content class="main-content">
       <router-view />
     </a-layout-content>
-
-    <!-- 底部版权 -->
+    <!-- 底部版权信息 -->
     <GlobalFooter />
   </a-layout>
 </template>
 
 <script setup lang="ts">
-import { RouterView } from 'vue-router'
 import GlobalHeader from '@/components/GlobalHeader.vue'
 import GlobalFooter from '@/components/GlobalFooter.vue'
 </script>
 
 <style scoped>
 .basic-layout {
-  min-height: 100vh;
+  background: none;
 }
 
-.layout-content {
-  padding: 24px;
-  background: #fff;
-  min-height: calc(100vh - 64px - 70px);
-  margin-top: 64px; /* 添加这一行，值与header高度一致 */
-}
-
-/* 响应式设计 */
-@media (max-width: 768px) {
-  .layout-content {
-    padding: 16px;
-    margin-top: 64px; /* 移动端也需要保持一致 */
-  }
+.main-content {
+  width: 100%;
+  padding: 0;
+  background: none;
+  margin: 0;
 }
 </style>

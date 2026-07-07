@@ -1,238 +1,22 @@
-<script setup lang="ts">
-import { ref, onMounted, computed, nextTick } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { useLoginUserStore } from '@/stores/loginUser.ts'
-import { getAppVoById, chatToGenCode, deployApp } from '@/api/appController.ts'
-import { message } from 'ant-design-vue'
-import {
-  SendOutlined,
-  CloudUploadOutlined,
-  ReloadOutlined,
-  EyeOutlined,
-} from '@ant-design/icons-vue'
-
-const route = useRoute()
-const router = useRouter()
-const loginUserStore = useLoginUserStore()
-
-// 响应式数据
-const appData = ref<API.AppVO>({} as API.AppVO)
-const loading = ref(false)
-const chatLoading = ref(false)
-const deployLoading = ref(false)
-const deployUrl = ref('')
-
-// 对话相关
-const messages = ref<
-  Array<{
-    id: string
-    type: 'user' | 'ai'
-    content: string
-    timestamp: Date
-  }>
->([])
-const currentMessage = ref('')
-const isGenerating = ref(false)
-const generatedCode = ref('')
-
-// 计算属性
-const appId = computed(() => route.params.id as string)
-const isOwner = computed(() => appData.value.userId === loginUserStore.loginUser.id)
-const isAdmin = computed(() => loginUserStore.loginUser.userRole === 'admin')
-const canEdit = computed(() => isOwner.value || isAdmin.value)
-
-// 获取应用信息
-const fetchAppInfo = async () => {
-  if (!appId.value) return
-
-  loading.value = true
-  try {
-    const res = await getAppVoById({ id: appId.value })
-    if (res.data.code === 0) {
-      appData.value = res.data.data!
-      // 如果有初始提示词，自动发送给AI
-      if (appData.value.initPrompt && messages.value.length === 0) {
-        await sendMessage(appData.value.initPrompt)
-      }
-    } else {
-      message.error('获取应用信息失败：' + res.data.message)
-    }
-  } catch (error) {
-    message.error('获取应用信息失败')
-    console.error('获取应用信息失败:', error)
-  } finally {
-    loading.value = false
-  }
-}
-
-// 发送消息
-const sendMessage = async (content: string) => {
-  if (!content.trim() || isGenerating.value) return
-
-  const userMessage = {
-    id: Date.now().toString(),
-    type: 'user' as const,
-    content: content.trim(),
-    timestamp: new Date(),
-  }
-
-  messages.value.push(userMessage)
-  currentMessage.value = ''
-
-  // 添加AI回复占位
-  const aiMessageId = (Date.now() + 1).toString()
-  const aiMessage = {
-    id: aiMessageId,
-    type: 'ai' as const,
-    content: '',
-    timestamp: new Date(),
-  }
-  messages.value.push(aiMessage)
-
-  // 滚动到底部
-  await nextTick()
-  scrollToBottom()
-
-  // 调用AI接口
-  await generateCode(content.trim(), aiMessageId)
-}
-
-// 生成代码
-const generateCode = async (userMessage: string, aiMessageId: string) => {
-  if (!appId.value) return
-
-  isGenerating.value = true
-  chatLoading.value = true
-
-  try {
-    // 使用正确的API路径
-    const response = await fetch(
-      `/api/app/chat/gen/code?appId=${appId.value}&message=${encodeURIComponent(userMessage)}`,
-    )
-
-    if (!response.ok) {
-      throw new Error('网络请求失败')
-    }
-
-    const reader = response.body?.getReader()
-    if (!reader) {
-      throw new Error('无法读取响应流')
-    }
-
-    let fullContent = ''
-
-    while (true) {
-      const { done, value } = await reader.read()
-
-      if (done) break
-
-      const chunk = new TextDecoder().decode(value)
-      const lines = chunk.split('\n')
-
-      for (const line of lines) {
-        if (line.startsWith('data: ')) {
-          const data = line.slice(6)
-          if (data === '[DONE]') {
-            // 生成完成，更新网页展示
-            isGenerating.value = false
-            chatLoading.value = false
-            updateWebPreview(fullContent)
-            return
-          }
-
-          try {
-            const parsed = JSON.parse(data)
-            // 后端 SSE 数据格式为 {"d": "内容"}，兼容 {"content": "..."} 格式
-            const chunkContent = parsed.d || parsed.content
-            if (chunkContent) {
-              fullContent += chunkContent
-              // 更新AI消息内容
-              const aiMessage = messages.value.find((msg) => msg.id === aiMessageId)
-              if (aiMessage) {
-                aiMessage.content = fullContent
-              }
-              scrollToBottom()
-            }
-          } catch (e) {
-            // 忽略解析错误
-          }
-        }
-      }
-    }
-  } catch (error) {
-    message.error('生成代码失败')
-    console.error('生成代码失败:', error)
-    isGenerating.value = false
-    chatLoading.value = false
-  }
-}
-
-// 更新网页预览
-const updateWebPreview = (code: string) => {
-  generatedCode.value = code
-  // 这里可以根据生成的代码类型来展示不同的预览
-  // 目前简单显示代码内容
-}
-
-// 部署应用
-const handleDeploy = async () => {
-  if (!appId.value) return
-
-  deployLoading.value = true
-  try {
-    const res = await deployApp({ appId: appId.value })
-    if (res.data.code === 0) {
-      deployUrl.value = res.data.data!
-      message.success('部署成功！')
-    } else {
-      message.error('部署失败：' + res.data.message)
-    }
-  } catch (error) {
-    message.error('部署失败，请稍后重试')
-    console.error('部署失败:', error)
-  } finally {
-    deployLoading.value = false
-  }
-}
-
-// 滚动到底部
-const scrollToBottom = () => {
-  const chatContainer = document.querySelector('.chat-messages')
-  if (chatContainer) {
-    chatContainer.scrollTop = chatContainer.scrollHeight
-  }
-}
-
-// 组件挂载时获取应用信息
-onMounted(() => {
-  fetchAppInfo()
-})
-</script>
-
 <template>
-  <div class="app-chat-page">
+  <div id="appChatPage">
     <!-- 顶部栏 -->
-    <div class="top-bar">
-      <div class="app-info">
-        <h1 class="app-name">{{ appData.appName || '未命名应用' }}</h1>
-        <span class="app-type">{{ appData.codeGenType || 'Web应用' }}</span>
+    <div class="header-bar">
+      <div class="header-left">
+        <h1 class="app-name">{{ appInfo?.appName || '网站生成器' }}</h1>
       </div>
-
-      <div class="top-actions">
-        <a-button
-          v-if="deployUrl"
-          type="link"
-          :href="deployUrl"
-          target="_blank"
-          class="deploy-link"
-        >
-          <EyeOutlined />
-          查看部署
+      <div class="header-right">
+        <a-button type="default" @click="showAppDetail">
+          <template #icon>
+            <InfoCircleOutlined />
+          </template>
+          应用详情
         </a-button>
-
-        <a-button type="primary" :loading="deployLoading" @click="handleDeploy" class="deploy-btn">
-          <CloudUploadOutlined />
-          部署
+        <a-button type="primary" @click="deployApp" :loading="deploying">
+          <template #icon>
+            <CloudUploadOutlined />
+          </template>
+          部署按钮
         </a-button>
       </div>
     </div>
@@ -241,74 +25,65 @@ onMounted(() => {
     <div class="main-content">
       <!-- 左侧对话区域 -->
       <div class="chat-section">
-        <div class="chat-header">
-          <h3>AI 对话</h3>
-          <a-button size="small" @click="fetchAppInfo" :loading="loading">
-            <ReloadOutlined />
-            刷新
-          </a-button>
-        </div>
-
-        <!-- 消息列表 -->
-        <div class="chat-messages">
-          <div
-            v-for="message in messages"
-            :key="message.id"
-            :class="['message', `message-${message.type}`]"
-          >
-            <div class="message-avatar">
-              <div v-if="message.type === 'user'" class="user-avatar">
-                {{ loginUserStore.loginUser.userName?.charAt(0) || 'U' }}
-              </div>
-              <div v-else class="ai-avatar">AI</div>
-            </div>
-
-            <div class="message-content">
-              <div class="message-text">
-                <pre v-if="message.type === 'ai' && message.content" class="code-content">{{
-                  message.content
-                }}</pre>
-                <span v-else>{{ message.content }}</span>
-              </div>
-              <div class="message-time">
-                {{ message.timestamp.toLocaleTimeString() }}
+        <!-- 消息区域 -->
+        <div class="messages-container" ref="messagesContainer">
+          <div v-for="(message, index) in messages" :key="index" class="message-item">
+            <div v-if="message.type === 'user'" class="user-message">
+              <div class="message-content">{{ message.content }}</div>
+              <div class="message-avatar">
+                <a-avatar :src="loginUserStore.loginUser.userAvatar" />
               </div>
             </div>
-          </div>
-
-          <!-- 加载状态 -->
-          <div v-if="isGenerating" class="message message-ai">
-            <div class="message-avatar">
-              <div class="ai-avatar">AI</div>
-            </div>
-            <div class="message-content">
-              <div class="typing-indicator">
-                <span></span>
-                <span></span>
-                <span></span>
+            <div v-else class="ai-message">
+              <div class="message-avatar">
+                <a-avatar :src="aiAvatar" />
+              </div>
+              <div class="message-content">
+                <MarkdownRenderer v-if="message.content" :content="message.content" />
+                <div v-if="message.loading" class="loading-indicator">
+                  <a-spin size="small" />
+                  <span>AI 正在思考...</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- 输入框 -->
-        <div class="chat-input">
-          <a-input
-            v-model:value="currentMessage"
-            placeholder="描述越详细，页面越具体，可以一步一步完善生成效果..."
-            :disabled="isGenerating"
-            @pressEnter="sendMessage(currentMessage)"
-            class="message-input"
-          />
-          <a-button
-            type="primary"
-            :disabled="!currentMessage.trim() || isGenerating"
-            @click="sendMessage(currentMessage)"
-            class="send-btn"
-          >
-            <SendOutlined />
-            发送
-          </a-button>
+        <!-- 用户消息输入框 -->
+        <div class="input-container">
+          <div class="input-wrapper">
+            <a-tooltip v-if="!isOwner" title="无法在别人的作品下对话哦~" placement="top">
+              <a-textarea
+                v-model:value="userInput"
+                placeholder="请描述你想生成的网站，越详细效果越好哦"
+                :rows="4"
+                :maxlength="1000"
+                @keydown.enter.prevent="sendMessage"
+                :disabled="isGenerating || !isOwner"
+              />
+            </a-tooltip>
+            <a-textarea
+              v-else
+              v-model:value="userInput"
+              placeholder="请描述你想生成的网站，越详细效果越好哦"
+              :rows="4"
+              :maxlength="1000"
+              @keydown.enter.prevent="sendMessage"
+              :disabled="isGenerating"
+            />
+            <div class="input-actions">
+              <a-button
+                type="primary"
+                @click="sendMessage"
+                :loading="isGenerating"
+                :disabled="!isOwner"
+              >
+                <template #icon>
+                  <SendOutlined />
+                </template>
+              </a-button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -316,395 +91,638 @@ onMounted(() => {
       <div class="preview-section">
         <div class="preview-header">
           <h3>生成后的网页展示</h3>
-          <span class="preview-status">
-            {{ isGenerating ? '生成中...' : generatedCode ? '生成完成' : '等待生成' }}
-          </span>
+          <div class="preview-actions">
+            <a-button v-if="previewUrl" type="link" @click="openInNewTab">
+              <template #icon>
+                <ExportOutlined />
+              </template>
+              新窗口打开
+            </a-button>
+          </div>
         </div>
-
         <div class="preview-content">
-          <div v-if="isGenerating" class="generating-placeholder">
-            <div class="loading-spinner"></div>
-            <p>AI 正在生成代码，请稍候...</p>
+          <div v-if="!previewUrl && !isGenerating" class="preview-placeholder">
+            <div class="placeholder-icon">🌐</div>
+            <p>网站文件生成完成后将在这里展示</p>
           </div>
-
-          <div v-else-if="generatedCode" class="code-preview">
-            <div class="preview-tabs">
-              <span class="tab active">代码预览</span>
-            </div>
-            <div class="code-content">
-              <pre>{{ generatedCode }}</pre>
-            </div>
+          <div v-else-if="isGenerating" class="preview-loading">
+            <a-spin size="large" />
+            <p>正在生成网站...</p>
           </div>
-
-          <div v-else class="empty-preview">
-            <div class="empty-icon">💻</div>
-            <p>输入提示词开始生成应用</p>
-          </div>
+          <iframe
+            v-else
+            :src="previewUrl"
+            class="preview-iframe"
+            frameborder="0"
+            @load="onIframeLoad"
+          ></iframe>
         </div>
       </div>
     </div>
+
+    <!-- 应用详情弹窗 -->
+    <AppDetailModal
+      v-model:open="appDetailVisible"
+      :app="appInfo"
+      :show-actions="isOwner || isAdmin"
+      @edit="editApp"
+      @delete="deleteApp"
+    />
+
+    <!-- 部署成功弹窗 -->
+    <DeploySuccessModal
+      v-model:open="deployModalVisible"
+      :deploy-url="deployUrl"
+      @open-site="openDeployedSite"
+    />
   </div>
 </template>
 
-<style scoped>
-.app-chat-page {
-  height: calc(100vh - 88px);
-  display: flex;
-  flex-direction: column;
-  background: #f5f5f5;
+<script setup lang="ts">
+import { ref, onMounted, nextTick, onUnmounted, computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { message } from 'ant-design-vue'
+import { useLoginUserStore } from '@/stores/loginUser'
+import {
+  getAppVoById,
+  deployApp as deployAppApi,
+  deleteApp as deleteAppApi,
+} from '@/api/appController'
+import { CodeGenTypeEnum } from '@/utils/codeGenTypes'
+import request from '@/request'
+
+import MarkdownRenderer from '@/components/MarkdownRenderer.vue'
+import AppDetailModal from '@/components/AppDetailModal.vue'
+import DeploySuccessModal from '@/components/DeploySuccessModal.vue'
+import aiAvatar from '@/assets/aiAvatar.png'
+import { API_BASE_URL, getStaticPreviewUrl } from '@/config/env'
+
+import {
+  CloudUploadOutlined,
+  SendOutlined,
+  ExportOutlined,
+  InfoCircleOutlined,
+} from '@ant-design/icons-vue'
+
+const route = useRoute()
+const router = useRouter()
+const loginUserStore = useLoginUserStore()
+
+// 应用信息
+const appInfo = ref<API.AppVO>()
+const appId = ref<string>()
+
+// 对话相关
+interface Message {
+  type: 'user' | 'ai'
+  content: string
+  loading?: boolean
 }
 
-/* 顶部栏样式 */
-.top-bar {
-  background: white;
-  padding: 16px 24px;
-  border-bottom: 1px solid #e8e8e8;
+const messages = ref<Message[]>([])
+const userInput = ref('')
+const isGenerating = ref(false)
+const messagesContainer = ref<HTMLElement>()
+const hasInitialConversation = ref(false) // 标记是否已经进行过初始对话
+
+// 预览相关
+const previewUrl = ref('')
+const previewReady = ref(false)
+
+// 部署相关
+const deploying = ref(false)
+const deployModalVisible = ref(false)
+const deployUrl = ref('')
+
+// 权限相关
+const isOwner = computed(() => {
+  return appInfo.value?.userId === loginUserStore.loginUser.id
+})
+
+const isAdmin = computed(() => {
+  return loginUserStore.loginUser.userRole === 'admin'
+})
+
+// 应用详情相关
+const appDetailVisible = ref(false)
+
+// 显示应用详情
+const showAppDetail = () => {
+  appDetailVisible.value = true
+}
+
+// 获取应用信息
+const fetchAppInfo = async () => {
+  const id = route.params.id as string
+  if (!id) {
+    message.error('应用ID不存在')
+    router.push('/')
+    return
+  }
+
+  appId.value = id
+
+  try {
+    const res = await getAppVoById({ id: id as unknown as number })
+    if (res.data.code === 0 && res.data.data) {
+      appInfo.value = res.data.data
+
+      // 检查是否有view=1参数，如果有则不自动发送初始提示词
+      const isViewMode = route.query.view === '1'
+
+      // 自动发送初始提示词（除非是查看模式或已经进行过初始对话）
+      if (appInfo.value.initPrompt && !isViewMode && !hasInitialConversation.value) {
+        hasInitialConversation.value = true
+        await sendInitialMessage(appInfo.value.initPrompt)
+      }
+    } else {
+      message.error('获取应用信息失败')
+      router.push('/')
+    }
+  } catch (error) {
+    console.error('获取应用信息失败：', error)
+    message.error('获取应用信息失败')
+    router.push('/')
+  }
+}
+
+// 发送初始消息
+const sendInitialMessage = async (prompt: string) => {
+  // 添加用户消息
+  messages.value.push({
+    type: 'user',
+    content: prompt,
+  })
+
+  // 添加AI消息占位符
+  const aiMessageIndex = messages.value.length
+  messages.value.push({
+    type: 'ai',
+    content: '',
+    loading: true,
+  })
+
+  await nextTick()
+  scrollToBottom()
+
+  // 开始生成
+  isGenerating.value = true
+  await generateCode(prompt, aiMessageIndex)
+}
+
+// 发送消息
+const sendMessage = async () => {
+  if (!userInput.value.trim() || isGenerating.value) {
+    return
+  }
+
+  const message = userInput.value.trim()
+  userInput.value = ''
+
+  // 添加用户消息
+  messages.value.push({
+    type: 'user',
+    content: message,
+  })
+
+  // 添加AI消息占位符
+  const aiMessageIndex = messages.value.length
+  messages.value.push({
+    type: 'ai',
+    content: '',
+    loading: true,
+  })
+
+  await nextTick()
+  scrollToBottom()
+
+  // 开始生成
+  isGenerating.value = true
+  await generateCode(message, aiMessageIndex)
+}
+
+// 生成代码 - 使用 EventSource 处理流式响应
+const generateCode = async (userMessage: string, aiMessageIndex: number) => {
+  let eventSource: EventSource | null = null
+  let streamCompleted = false
+
+  try {
+    // 获取 axios 配置的 baseURL
+    const baseURL = request.defaults.baseURL || API_BASE_URL
+
+    // 构建URL参数
+    const params = new URLSearchParams({
+      appId: appId.value || '',
+      message: userMessage,
+    })
+
+    const url = `${baseURL}/app/chat/gen/code?${params}`
+
+    // 创建 EventSource 连接
+    eventSource = new EventSource(url, {
+      withCredentials: true,
+    })
+
+    let fullContent = ''
+
+    // 处理接收到的消息
+    eventSource.onmessage = function (event) {
+      if (streamCompleted) return
+
+      try {
+        // 解析JSON包装的数据
+        const parsed = JSON.parse(event.data)
+        const content = parsed.d
+
+        // 拼接内容
+        if (content !== undefined && content !== null) {
+          fullContent += content
+          messages.value[aiMessageIndex].content = fullContent
+          messages.value[aiMessageIndex].loading = false
+          scrollToBottom()
+        }
+      } catch (error) {
+        console.error('解析消息失败:', error)
+        handleError(error, aiMessageIndex)
+      }
+    }
+
+    // 处理done事件
+    eventSource.addEventListener('done', function () {
+      if (streamCompleted) return
+
+      streamCompleted = true
+      isGenerating.value = false
+      eventSource?.close()
+
+      // 延迟更新预览，确保后端已完成处理
+      setTimeout(async () => {
+        await fetchAppInfo()
+        updatePreview()
+      }, 1000)
+    })
+
+    // 处理错误
+    eventSource.onerror = function () {
+      if (streamCompleted || !isGenerating.value) return
+      // 检查是否是正常的连接关闭
+      if (eventSource?.readyState === EventSource.CONNECTING) {
+        streamCompleted = true
+        isGenerating.value = false
+        eventSource?.close()
+
+        setTimeout(async () => {
+          await fetchAppInfo()
+          updatePreview()
+        }, 1000)
+      } else {
+        handleError(new Error('SSE连接错误'), aiMessageIndex)
+      }
+    }
+  } catch (error) {
+    console.error('创建 EventSource 失败：', error)
+    handleError(error, aiMessageIndex)
+  }
+}
+
+// 错误处理函数
+const handleError = (error: unknown, aiMessageIndex: number) => {
+  console.error('生成代码失败：', error)
+  messages.value[aiMessageIndex].content = '抱歉，生成过程中出现了错误，请重试。'
+  messages.value[aiMessageIndex].loading = false
+  message.error('生成失败，请重试')
+  isGenerating.value = false
+}
+
+// 更新预览
+const updatePreview = () => {
+  if (appId.value) {
+    const codeGenType = appInfo.value?.codeGenType || CodeGenTypeEnum.HTML
+    const newPreviewUrl = getStaticPreviewUrl(codeGenType, appId.value)
+    previewUrl.value = newPreviewUrl
+    previewReady.value = true
+  }
+}
+
+// 滚动到底部
+const scrollToBottom = () => {
+  if (messagesContainer.value) {
+    messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
+  }
+}
+
+// 部署应用
+const deployApp = async () => {
+  if (!appId.value) {
+    message.error('应用ID不存在')
+    return
+  }
+
+  deploying.value = true
+  try {
+    const res = await deployAppApi({
+      appId: appId.value as unknown as number,
+    })
+
+    if (res.data.code === 0 && res.data.data) {
+      deployUrl.value = res.data.data
+      deployModalVisible.value = true
+      message.success('部署成功')
+    } else {
+      message.error('部署失败：' + res.data.message)
+    }
+  } catch (error) {
+    console.error('部署失败：', error)
+    message.error('部署失败，请重试')
+  } finally {
+    deploying.value = false
+  }
+}
+
+// 在新窗口打开预览
+const openInNewTab = () => {
+  if (previewUrl.value) {
+    window.open(previewUrl.value, '_blank')
+  }
+}
+
+// 打开部署的网站
+const openDeployedSite = () => {
+  if (deployUrl.value) {
+    window.open(deployUrl.value, '_blank')
+  }
+}
+
+// iframe加载完成
+const onIframeLoad = () => {
+  previewReady.value = true
+}
+
+// 编辑应用
+const editApp = () => {
+  if (appInfo.value?.id) {
+    router.push(`/app/edit/${appInfo.value.id}`)
+  }
+}
+
+// 删除应用
+const deleteApp = async () => {
+  if (!appInfo.value?.id) return
+
+  try {
+    const res = await deleteAppApi({ id: appInfo.value.id })
+    if (res.data.code === 0) {
+      message.success('删除成功')
+      appDetailVisible.value = false
+      router.push('/')
+    } else {
+      message.error('删除失败：' + res.data.message)
+    }
+  } catch (error) {
+    console.error('删除失败：', error)
+    message.error('删除失败')
+  }
+}
+
+// 页面加载时获取应用信息
+onMounted(() => {
+  fetchAppInfo()
+})
+
+// 清理资源
+onUnmounted(() => {
+  // EventSource 会在组件卸载时自动清理
+})
+</script>
+
+<style scoped>
+#appChatPage {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  background: #fdfdfd;
+}
+
+/* 顶部栏 */
+.header-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 12px 16px;
 }
 
-.app-info {
+.header-left {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
 }
 
 .app-name {
   margin: 0;
-  font-size: 1.5rem;
+  font-size: 18px;
   font-weight: 600;
-  color: #1890ff;
+  color: #1a1a1a;
 }
 
-.app-type {
-  background: #f0f0f0;
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 0.875rem;
-  color: #666;
-}
-
-.top-actions {
+.header-right {
   display: flex;
   gap: 12px;
-  align-items: center;
-}
-
-.deploy-link {
-  color: #52c41a;
-}
-
-.deploy-btn {
-  border-radius: 6px;
 }
 
 /* 主要内容区域 */
 .main-content {
   flex: 1;
   display: flex;
-  gap: 24px;
-  padding: 24px;
+  gap: 16px;
+  padding: 8px;
   overflow: hidden;
 }
 
 /* 左侧对话区域 */
 .chat-section {
-  flex: 1;
+  flex: 2;
+  display: flex;
+  flex-direction: column;
   background: white;
   border-radius: 8px;
-  display: flex;
-  flex-direction: column;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
 }
 
-.chat-header {
-  padding: 16px 20px;
-  border-bottom: 1px solid #f0f0f0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.chat-header h3 {
-  margin: 0;
-  color: #333;
-}
-
-.chat-messages {
+.messages-container {
   flex: 1;
-  padding: 20px;
+  padding: 16px;
   overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+  scroll-behavior: smooth;
 }
 
-.message {
+.message-item {
+  margin-bottom: 12px;
+}
+
+.user-message {
   display: flex;
-  gap: 12px;
+  justify-content: flex-end;
   align-items: flex-start;
+  gap: 8px;
 }
 
-.message-user {
-  flex-direction: row-reverse;
+.ai-message {
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.message-content {
+  max-width: 70%;
+  padding: 12px 16px;
+  border-radius: 12px;
+  line-height: 1.5;
+  word-wrap: break-word;
+}
+
+.user-message .message-content {
+  background: #1890ff;
+  color: white;
+}
+
+.ai-message .message-content {
+  background: #f5f5f5;
+  color: #1a1a1a;
+  padding: 8px 12px;
 }
 
 .message-avatar {
   flex-shrink: 0;
 }
 
-.user-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: #1890ff;
-  color: white;
+.loading-indicator {
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-weight: 600;
-  font-size: 0.875rem;
+  gap: 8px;
+  color: #666;
 }
 
-.ai-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: #52c41a;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
-  font-size: 0.875rem;
+/* 输入区域 */
+.input-container {
+  padding: 16px;
+  background: white;
 }
 
-.message-content {
-  flex: 1;
-  max-width: 80%;
+.input-wrapper {
+  position: relative;
 }
 
-.message-user .message-content {
-  text-align: right;
+.input-wrapper .ant-input {
+  padding-right: 50px;
 }
 
-.message-text {
-  background: #f0f0f0;
-  padding: 12px 16px;
-  border-radius: 12px;
-  word-wrap: break-word;
-}
-
-.message-user .message-text {
-  background: #1890ff;
-  color: white;
-}
-
-.code-content {
-  white-space: pre-wrap;
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  font-size: 0.875rem;
-  line-height: 1.5;
-  margin: 0;
-}
-
-.message-time {
-  font-size: 0.75rem;
-  color: #999;
-  margin-top: 4px;
-}
-
-.message-user .message-time {
-  text-align: right;
-}
-
-/* 输入框样式 */
-.chat-input {
-  padding: 20px;
-  border-top: 1px solid #f0f0f0;
-  display: flex;
-  gap: 12px;
-}
-
-.message-input {
-  flex: 1;
-}
-
-.send-btn {
-  border-radius: 6px;
+.input-actions {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
 }
 
 /* 右侧预览区域 */
 .preview-section {
-  flex: 1;
-  background: white;
-  border-radius: 8px;
+  flex: 3;
   display: flex;
   flex-direction: column;
+  background: white;
+  border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
 }
 
 .preview-header {
-  padding: 16px 20px;
-  border-bottom: 1px solid #f0f0f0;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid #e8e8e8;
 }
 
 .preview-header h3 {
   margin: 0;
-  color: #333;
+  font-size: 16px;
+  font-weight: 600;
 }
 
-.preview-status {
-  font-size: 0.875rem;
-  color: #666;
+.preview-actions {
+  display: flex;
+  gap: 8px;
 }
 
 .preview-content {
   flex: 1;
-  padding: 20px;
-  overflow-y: auto;
+  position: relative;
+  overflow: hidden;
 }
 
-/* 生成中状态 */
-.generating-placeholder {
-  text-align: center;
-  padding: 60px 20px;
-  color: #666;
-}
-
-.loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid #f3f3f3;
-  border-top: 3px solid #1890ff;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: 0 auto 20px;
-}
-
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-/* 代码预览 */
-.code-preview {
-  height: 100%;
-}
-
-.preview-tabs {
-  margin-bottom: 16px;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.tab {
-  display: inline-block;
-  padding: 8px 16px;
-  border-bottom: 2px solid transparent;
-  cursor: pointer;
-  color: #666;
-}
-
-.tab.active {
-  color: #1890ff;
-  border-bottom-color: #1890ff;
-}
-
-.code-content {
-  background: #f8f9fa;
-  border-radius: 6px;
-  padding: 16px;
-  height: calc(100% - 60px);
-  overflow-y: auto;
-}
-
-.code-content pre {
-  margin: 0;
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  font-size: 0.875rem;
-  line-height: 1.5;
-  color: #333;
-}
-
-/* 空状态 */
-.empty-preview {
-  text-align: center;
-  padding: 60px 20px;
-  color: #999;
-}
-
-.empty-icon {
-  font-size: 3rem;
-  margin-bottom: 16px;
-}
-
-/* 打字指示器 */
-.typing-indicator {
+.preview-placeholder {
   display: flex;
-  gap: 4px;
-  padding: 12px 16px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #666;
 }
 
-.typing-indicator span {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #999;
-  animation: typing 1.4s infinite ease-in-out;
+.placeholder-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
 }
 
-.typing-indicator span:nth-child(1) {
-  animation-delay: -0.32s;
-}
-.typing-indicator span:nth-child(2) {
-  animation-delay: -0.16s;
+.preview-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #666;
 }
 
-@keyframes typing {
-  0%,
-  80%,
-  100% {
-    transform: scale(0.8);
-    opacity: 0.5;
-  }
-  40% {
-    transform: scale(1);
-    opacity: 1;
-  }
+.preview-loading p {
+  margin-top: 16px;
+}
+
+.preview-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
 }
 
 /* 响应式设计 */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .main-content {
     flex-direction: column;
-    gap: 16px;
-    padding: 16px;
   }
 
-  .top-bar {
+  .chat-section,
+  .preview-section {
+    flex: none;
+    height: 50vh;
+  }
+}
+
+@media (max-width: 768px) {
+  .header-bar {
     padding: 12px 16px;
   }
 
   .app-name {
-    font-size: 1.25rem;
+    font-size: 16px;
   }
 
-  .top-actions {
-    flex-direction: column;
+  .main-content {
+    padding: 8px;
     gap: 8px;
   }
 
-  .chat-input {
-    flex-direction: column;
+  .message-content {
+    max-width: 85%;
   }
 }
 </style>
