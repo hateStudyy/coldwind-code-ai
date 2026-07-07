@@ -1,0 +1,38 @@
+<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <!-- 龙宝宝身体 -->
+  <ellipse cx="16" cy="20" rx="9" ry="6" fill="#ff6b6b" stroke="#e55555" stroke-width="0.5"/>
+  
+  <!-- 龙宝宝头部 -->
+  <circle cx="16" cy="12" r="6" fill="#ff8e8e" stroke="#e55555" stroke-width="0.5"/>
+  
+  <!-- 龙宝宝眼睛 -->
+  <circle cx="14" cy="11" r="1" fill="#333"/>
+  <circle cx="18" cy="11" r="1" fill="#333"/>
+  <circle cx="14.2" cy="10.8" r="0.4" fill="#fff"/>
+  <circle cx="18.2" cy="10.8" r="0.4" fill="#fff"/>
+  
+  <!-- 龙宝宝鼻子 -->
+  <ellipse cx="16" cy="12.5" rx="0.5" ry="0.4" fill="#e55555"/>
+  
+  <!-- 龙宝宝嘴巴 -->
+  <path d="M 15 13.5 Q 16 14.5 17 13.5" stroke="#e55555" stroke-width="0.8" fill="none"/>
+  
+  <!-- 龙宝宝角 -->
+  <path d="M 13 9 L 12 6 L 13 8" stroke="#ff9f43" stroke-width="1" fill="none" stroke-linecap="round"/>
+  <path d="M 19 9 L 20 6 L 19 8" stroke="#ff9f43" stroke-width="1" fill="none" stroke-linecap="round"/>
+  
+  <!-- 龙宝宝翅膀 -->
+  <ellipse cx="10" cy="17.5" rx="3" ry="4" fill="#ff9f43" opacity="0.8" transform="rotate(-20 10 17.5)"/>
+  <ellipse cx="22" cy="17.5" rx="3" ry="4" fill="#ff9f43" opacity="0.8" transform="rotate(20 22 17.5)"/>
+  
+  <!-- 龙宝宝尾巴 -->
+  <path d="M 7 20 Q 4 22.5 3 25 Q 2 27.5 4 29" stroke="#ff6b6b" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  
+  <!-- 龙宝宝小爪子 -->
+  <circle cx="11" cy="24" r="1" fill="#ff8e8e"/>
+  <circle cx="21" cy="24" r="1" fill="#ff8e8e"/>
+  
+  <!-- 可爱的小星星装饰 -->
+  <path d="M 6 7.5 L 6.5 9 L 8 9 L 7 10 L 7.5 11.5 L 6 10.5 L 4.5 11.5 L 5 10 L 4 9 L 5.5 9 Z" fill="#ffd93d" opacity="0.8"/>
+  <path d="M 25 10 L 25.5 11 L 26.5 11 L 26 11.5 L 26 12.5 L 25 12 L 24 12.5 L 24 11.5 L 23.5 11 L 24.5 11 Z" fill="#ffd93d" opacity="0.8"/>
+</svg>

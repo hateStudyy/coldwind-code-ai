@@ -35,6 +35,8 @@ const setPrompt = (prompt: string) => {
   userPrompt.value = prompt
 }
 
+// 优化提示词功能已移除
+
 // 创建应用
 const createApp = async () => {
   if (!userPrompt.value.trim()) {
@@ -127,100 +129,124 @@ const viewWork = (app: API.AppVO) => {
   }
 }
 
+// 滚动到我的作品
+const scrollToMyApps = () => {
+  const myAppsSection = document.getElementById('my-apps')
+  if (myAppsSection) {
+    myAppsSection.scrollIntoView({ behavior: 'smooth' })
+  }
+}
+
+// 滚动到精选案例
+const scrollToFeatured = () => {
+  const featuredSection = document.getElementById('featured-apps')
+  if (featuredSection) {
+    featuredSection.scrollIntoView({ behavior: 'smooth' })
+  }
+}
+
+// 格式化时间函数已移除，不再需要显示创建时间
+
 // 页面加载时获取数据
 onMounted(() => {
   loadMyApps()
   loadFeaturedApps()
-
-  // 鼠标跟随光效
-  const handleMouseMove = (e: MouseEvent) => {
-    const { clientX, clientY } = e
-    const { innerWidth, innerHeight } = window
-    const x = (clientX / innerWidth) * 100
-    const y = (clientY / innerHeight) * 100
-
-    document.documentElement.style.setProperty('--mouse-x', `${x}%`)
-    document.documentElement.style.setProperty('--mouse-y', `${y}%`)
-  }
-
-  document.addEventListener('mousemove', handleMouseMove)
-
-  // 清理事件监听器
-  return () => {
-    document.removeEventListener('mousemove', handleMouseMove)
-  }
 })
 </script>
 
 <template>
   <div id="homePage">
     <div class="container">
-      <!-- 网站标题和描述 -->
-      <div class="hero-section">
-        <h1 class="hero-title">AI 应用生成平台</h1>
-        <p class="hero-description">一句话轻松创建网站应用</p>
-      </div>
+      <!-- 主要内容区域 -->
+      <div class="main-hero">
+        <!-- 左侧：Logo和标题 -->
+        <div class="hero-left">
+          <img class="hero-logo" src="@/assets/logo-large.svg" alt="龙宝宝代码外卖小店" />
+          <div class="hero-text">
+            <h1 class="hero-title">龙宝宝代码外卖小店</h1>
+            <p class="hero-description">一句话轻松创建网站应用</p>
+          </div>
+        </div>
 
-      <!-- 用户提示词输入框 -->
-      <div class="input-section">
-        <a-textarea
-          v-model:value="userPrompt"
-          placeholder="帮我创建个人博客网站"
-          :rows="4"
-          :maxlength="1000"
-          class="prompt-input"
-        />
-        <div class="input-actions">
-          <a-button type="primary" size="large" @click="createApp" :loading="creating">
-            <template #icon>
-              <span>↑</span>
-            </template>
-          </a-button>
+        <!-- 右侧：输入框和快捷操作 -->
+        <div class="hero-right">
+          <div class="input-section">
+            <a-textarea
+              v-model:value="userPrompt"
+              placeholder="描叙您想要的网站，为您加急配送～"
+              :rows="4"
+              :maxlength="100000"
+              class="prompt-input"
+            />
+            <div class="input-actions">
+              <a-button type="primary" size="large" @click="createApp" :loading="creating">
+                <template #icon>
+                  <span>↑</span>
+                </template>
+              </a-button>
+            </div>
+          </div>
+
+          <!-- 快捷导航按钮 -->
+          <div class="quick-nav">
+            <a-button type="default" @click="scrollToMyApps" class="nav-btn">
+              <template #icon>
+                <span>📱</span>
+              </template>
+              我的作品
+            </a-button>
+            <a-button type="default" @click="scrollToFeatured" class="nav-btn">
+              <template #icon>
+                <span>⭐</span>
+              </template>
+              精选案例
+            </a-button>
+          </div>
+
+          <!-- 示例按钮 -->
+          <div class="quick-actions">
+            <a-button
+              type="default"
+              @click="
+                setPrompt(
+                  '创建一个现代化的个人博客网站，包含文章列表、详情页、分类标签、搜索功能、评论系统和个人简介页面。采用简洁的设计风格，支持响应式布局，文章支持Markdown格式，首页展示最新文章和热门推荐。',
+                )
+              "
+              >个人博客网站</a-button
+            >
+            <a-button
+              type="default"
+              @click="
+                setPrompt(
+                  '设计一个专业的企业官网，包含公司介绍、产品服务展示、新闻资讯、联系我们等页面。采用商务风格的设计，包含轮播图、产品展示卡片、团队介绍、客户案例展示，支持多语言切换和在线客服功能。',
+                )
+              "
+              >企业官网</a-button
+            >
+            <a-button
+              type="default"
+              @click="
+                setPrompt(
+                  '构建一个功能完整的在线商城，包含商品展示、购物车、用户注册登录、订单管理、支付结算等功能。设计现代化的商品卡片布局，支持商品搜索筛选、用户评价、优惠券系统和会员积分功能。',
+                )
+              "
+              >在线商城</a-button
+            >
+            <a-button
+              type="default"
+              @click="
+                setPrompt(
+                  '开发一个作品展示网站，用于展示个人或团队的设计作品、项目案例、技能展示等。包含作品分类、详情展示、技能标签、联系方式等功能，采用现代化的卡片式布局和动画效果。',
+                )
+              "
+              >作品展示网站</a-button
+            >
+          </div>
         </div>
       </div>
 
-      <!-- 快捷按钮 -->
-      <div class="quick-actions">
-        <a-button
-          type="default"
-          @click="
-            setPrompt(
-              '创建一个现代化的个人博客网站，包含文章列表、详情页、分类标签、搜索功能、评论系统和个人简介页面。采用简洁的设计风格，支持响应式布局，文章支持Markdown格式，首页展示最新文章和热门推荐。',
-            )
-          "
-          >个人博客网站</a-button
-        >
-        <a-button
-          type="default"
-          @click="
-            setPrompt(
-              '设计一个专业的企业官网，包含公司介绍、产品服务展示、新闻资讯、联系我们等页面。采用商务风格的设计，包含轮播图、产品展示卡片、团队介绍、客户案例展示，支持多语言切换和在线客服功能。',
-            )
-          "
-          >企业官网</a-button
-        >
-        <a-button
-          type="default"
-          @click="
-            setPrompt(
-              '构建一个功能完整的在线商城，包含商品展示、购物车、用户注册登录、订单管理、支付结算等功能。设计现代化的商品卡片布局，支持商品搜索筛选、用户评价、优惠券系统和会员积分功能。',
-            )
-          "
-          >在线商城</a-button
-        >
-        <a-button
-          type="default"
-          @click="
-            setPrompt(
-              '制作一个精美的作品展示网站，适合设计师、摄影师、艺术家等创作者。包含作品画廊、项目详情页、个人简历、联系方式等模块。采用瀑布流或网格布局展示作品，支持图片放大预览和作品分类筛选。',
-            )
-          "
-          >作品展示网站</a-button
-        >
-      </div>
-
       <!-- 我的作品 -->
-      <div class="section">
+      <div class="section" id="my-apps">
         <h2 class="section-title">我的作品</h2>
         <div class="app-grid">
           <AppCard
@@ -244,7 +270,7 @@ onMounted(() => {
       </div>
 
       <!-- 精选案例 -->
-      <div class="section">
+      <div class="section" id="featured-apps">
         <h2 class="section-title">精选案例</h2>
         <div class="featured-grid">
           <AppCard
@@ -277,76 +303,12 @@ onMounted(() => {
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  background:
-    linear-gradient(180deg, #f8fafc 0%, #f1f5f9 8%, #e2e8f0 20%, #cbd5e1 100%),
-    radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.12) 0%, transparent 50%),
-    radial-gradient(circle at 40% 40%, rgba(16, 185, 129, 0.08) 0%, transparent 50%);
+  background: linear-gradient(180deg, #fff7e6 0%, #ffe7ba 100%);
   position: relative;
   overflow: hidden;
 }
 
-/* 科技感网格背景 */
-#homePage::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image:
-    linear-gradient(rgba(59, 130, 246, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(59, 130, 246, 0.05) 1px, transparent 1px),
-    linear-gradient(rgba(139, 92, 246, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(139, 92, 246, 0.04) 1px, transparent 1px);
-  background-size:
-    100px 100px,
-    100px 100px,
-    20px 20px,
-    20px 20px;
-  pointer-events: none;
-  animation: gridFloat 20s ease-in-out infinite;
-}
-
-/* 动态光效 */
-#homePage::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background:
-    radial-gradient(
-      600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
-      rgba(59, 130, 246, 0.08) 0%,
-      rgba(139, 92, 246, 0.06) 40%,
-      transparent 80%
-    ),
-    linear-gradient(45deg, transparent 30%, rgba(59, 130, 246, 0.04) 50%, transparent 70%),
-    linear-gradient(-45deg, transparent 30%, rgba(139, 92, 246, 0.04) 50%, transparent 70%);
-  pointer-events: none;
-  animation: lightPulse 8s ease-in-out infinite alternate;
-}
-
-@keyframes gridFloat {
-  0%,
-  100% {
-    transform: translate(0, 0);
-  }
-  50% {
-    transform: translate(5px, 5px);
-  }
-}
-
-@keyframes lightPulse {
-  0% {
-    opacity: 0.3;
-  }
-  100% {
-    opacity: 0.7;
-  }
-}
+/* 去除网格与光效，保持简约背景 */
 
 .container {
   max-width: 1200px;
@@ -358,14 +320,49 @@ onMounted(() => {
   box-sizing: border-box;
 }
 
-/* 英雄区域 */
-.hero-section {
-  text-align: center;
-  padding: 80px 0 60px;
-  margin-bottom: 28px;
-  color: #1e293b;
-  position: relative;
-  overflow: hidden;
+/* 移除居中光束效果 */
+
+/* 主要内容区域 */
+.main-hero {
+  display: flex;
+  align-items: flex-start;
+  gap: 60px;
+  padding: 40px 0 60px;
+  margin-bottom: 40px;
+}
+
+.hero-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.hero-logo {
+  width: 200px;
+  height: 200px;
+  margin-bottom: 20px;
+  animation: logoFloat 3s ease-in-out infinite;
+}
+
+.hero-text {
+  text-align: left;
+}
+
+.hero-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+@keyframes logoFloat {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 .hero-section::before {
@@ -375,21 +372,17 @@ onMounted(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  background:
-    radial-gradient(ellipse 800px 400px at center, rgba(59, 130, 246, 0.12) 0%, transparent 70%),
-    linear-gradient(45deg, transparent 30%, rgba(139, 92, 246, 0.05) 50%, transparent 70%),
-    linear-gradient(-45deg, transparent 30%, rgba(16, 185, 129, 0.04) 50%, transparent 70%);
-  animation: heroGlow 10s ease-in-out infinite alternate;
+  background: radial-gradient(ellipse 800px 400px at center, rgba(250, 140, 22, 0.10) 0%, transparent 70%);
 }
 
-@keyframes heroGlow {
+/* 取消英雄区动画，保持稳重质感 */
+
+@keyframes rotate {
   0% {
-    opacity: 0.6;
-    transform: scale(1);
+    transform: translate(-50%, -50%) rotate(0deg);
   }
   100% {
-    opacity: 1;
-    transform: scale(1.02);
+    transform: translate(-50%, -50%) rotate(360deg);
   }
 }
 
@@ -398,31 +391,21 @@ onMounted(() => {
   font-weight: 700;
   margin: 0 0 20px;
   line-height: 1.2;
-  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #10b981 100%);
+  background: linear-gradient(135deg, #fa8c16 0%, #ff9c2a 60%, #ffd591 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   letter-spacing: -1px;
   position: relative;
   z-index: 2;
-  animation: titleShimmer 3s ease-in-out infinite;
 }
-
-@keyframes titleShimmer {
-  0%,
-  100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-}
+/* 去除标题闪烁动画，提升高级感 */
 
 .hero-description {
   font-size: 20px;
   margin: 0;
   opacity: 0.8;
-  color: #64748b;
+  color: #5c6b75;
   position: relative;
   z-index: 2;
 }
@@ -430,8 +413,7 @@ onMounted(() => {
 /* 输入区域 */
 .input-section {
   position: relative;
-  margin: 0 auto 24px;
-  max-width: 800px;
+  margin: 0;
 }
 
 .prompt-input {
@@ -457,6 +439,33 @@ onMounted(() => {
   display: flex;
   gap: 8px;
   align-items: center;
+}
+
+/* 快捷导航按钮 */
+.quick-nav {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+}
+
+.nav-btn {
+  border-radius: 25px;
+  padding: 12px 24px;
+  height: auto;
+  background: rgba(255, 255, 255, 0.9);
+  border: 2px solid rgba(250, 140, 22, 0.3);
+  color: #fa8c16;
+  backdrop-filter: blur(15px);
+  transition: all 0.3s;
+  font-weight: 600;
+}
+
+.nav-btn:hover {
+  background: rgba(250, 140, 22, 0.1);
+  border-color: rgba(250, 140, 22, 0.6);
+  color: #d46b08;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(250, 140, 22, 0.2);
 }
 
 /* 快捷按钮 */
@@ -506,13 +515,13 @@ onMounted(() => {
 
 /* 区域标题 */
 .section {
-  margin-bottom: 60px;
+  margin-bottom: 50px;
 }
 
 .section-title {
-  font-size: 32px;
+  font-size: 28px;
   font-weight: 600;
-  margin-bottom: 32px;
+  margin-bottom: 24px;
   color: #1e293b;
 }
 
@@ -540,9 +549,30 @@ onMounted(() => {
 }
 
 /* 响应式设计 */
+@media (max-width: 1024px) {
+  .main-hero {
+    flex-direction: column;
+    gap: 40px;
+    text-align: center;
+  }
+
+  .hero-left {
+    align-items: center;
+  }
+
+  .hero-text {
+    text-align: center;
+  }
+}
+
 @media (max-width: 768px) {
+  .hero-logo {
+    width: 150px;
+    height: 150px;
+  }
+
   .hero-title {
-    font-size: 32px;
+    font-size: 24px;
   }
 
   .hero-description {
@@ -556,6 +586,15 @@ onMounted(() => {
 
   .quick-actions {
     justify-content: center;
+  }
+
+  .quick-nav {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .nav-btn {
+    width: 100%;
   }
 }
 </style>

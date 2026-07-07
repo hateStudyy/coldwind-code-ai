@@ -2,10 +2,10 @@
   <a-layout-header class="header">
     <a-row :wrap="false">
       <!-- 左侧：Logo和标题 -->
-      <a-col flex="200px">
+      <a-col flex="360px">
         <RouterLink to="/">
           <div class="header-left">
-            <img class="logo" src="@/assets/logo.png" alt="Logo" />
+            <img class="logo" src="@/assets/logo.svg" alt="Coldwind Logo" />
             <h1 class="site-title">Coldwind Code AI</h1>
           </div>
         </RouterLink>
@@ -152,9 +152,16 @@ const doLogout = async () => {
   margin: 0;
   font-size: 18px;
   color: #1890ff;
+  white-space: nowrap; /* 防止标题换行 */
 }
 
 .ant-menu-horizontal {
   border-bottom: none !important;
+}
+
+@media (max-width: 768px) {
+  .site-title {
+    font-size: 16px;
+  }
 }
 </style>

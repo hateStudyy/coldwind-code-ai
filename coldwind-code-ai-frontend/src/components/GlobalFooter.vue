@@ -2,14 +2,7 @@
   <a-layout-footer class="footer">
     <div class="footer-content">
       <p class="copyright">
-        <a
-          href="https://github.com/hateStudyy"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="author-link"
-        >
-          Coldwind Code AI
-        </a>
+        Coldwind Code AI · 一句话，生成你想要的网站
       </p>
     </div>
   </a-layout-footer>

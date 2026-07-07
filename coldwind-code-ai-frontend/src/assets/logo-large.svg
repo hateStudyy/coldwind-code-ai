@@ -1,0 +1,46 @@
+<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- 龙宝宝身体 -->
+  <ellipse cx="150" cy="190" rx="70" ry="45" fill="#ff6b6b" stroke="#e55555" stroke-width="3"/>
+  
+  <!-- 龙宝宝头部 -->
+  <circle cx="150" cy="90" r="45" fill="#ff8e8e" stroke="#e55555" stroke-width="3"/>
+  
+  <!-- 龙宝宝眼睛 -->
+  <circle cx="135" cy="82" r="8" fill="#333"/>
+  <circle cx="165" cy="82" r="8" fill="#333"/>
+  <circle cx="135.5" cy="81.5" r="3" fill="#fff"/>
+  <circle cx="165.5" cy="81.5" r="3" fill="#fff"/>
+  
+  <!-- 龙宝宝鼻子 -->
+  <ellipse cx="150" cy="93" rx="4" ry="3" fill="#e55555"/>
+  
+  <!-- 龙宝宝嘴巴 -->
+  <path d="M 142 100 Q 150 105 158 100" stroke="#e55555" stroke-width="4" fill="none"/>
+  
+  <!-- 龙宝宝角 -->
+  <path d="M 127 67 L 120 45 L 127 60" stroke="#ff9f43" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <path d="M 173 67 L 180 45 L 173 60" stroke="#ff9f43" stroke-width="6" fill="none" stroke-linecap="round"/>
+  
+  <!-- 龙宝宝翅膀 -->
+  <ellipse cx="105" cy="165" rx="22" ry="30" fill="#ff9f43" opacity="0.8" transform="rotate(-20 105 165)"/>
+  <ellipse cx="195" cy="165" rx="22" ry="30" fill="#ff9f43" opacity="0.8" transform="rotate(20 195 165)"/>
+  
+  <!-- 龙宝宝尾巴 -->
+  <path d="M 80 190 Q 50 210 35 240 Q 20 270 50 285" stroke="#ff6b6b" stroke-width="9" fill="none" stroke-linecap="round"/>
+  
+  <!-- 龙宝宝小爪子 -->
+  <circle cx="120" cy="225" r="8" fill="#ff8e8e"/>
+  <circle cx="180" cy="225" r="8" fill="#ff8e8e"/>
+  
+  <!-- 可爱的小星星装饰 -->
+  <path d="M 45 52 L 48 60 L 56 60 L 50 66 L 52 74 L 45 70 L 38 74 L 40 66 L 34 60 L 42 60 Z" fill="#ffd93d" opacity="0.8"/>
+  <path d="M 255 75 L 258 82 L 266 82 L 260 88 L 262 96 L 255 92 L 248 96 L 250 88 L 244 82 L 252 82 Z" fill="#ffd93d" opacity="0.8"/>
+  
+  <!-- 外卖元素装饰 -->
+  <rect x="127" y="52" width="46" height="30" rx="5" fill="#fff" stroke="#ff9f43" stroke-width="3"/>
+  <text x="150" y="72" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#ff9f43">外卖</text>
+  
+  <!-- 代码元素装饰 -->
+  <rect x="40" y="200" width="30" height="20" rx="3" fill="#fff" stroke="#ff9f43" stroke-width="2"/>
+  <text x="55" y="213" text-anchor="middle" font-family="monospace" font-size="8" font-weight="bold" fill="#ff9f43">&lt;/&gt;</text>
+</svg>
