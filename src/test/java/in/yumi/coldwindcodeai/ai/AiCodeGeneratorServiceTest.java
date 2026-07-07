@@ -15,13 +15,13 @@ class AiCodeGeneratorServiceTest {
 
     @Test
     void generateHtmlCode() {
-        HtmlCodeResult result = aiCodeGeneratorService.generateHtmlCode("做个 coldwind（作者） 的 hello world 网站");
+        HtmlCodeResult result = aiCodeGeneratorService.generateHtmlCode("总结主流视频网站");
         Assertions.assertNotNull(result);
     }
 
     @Test
     void generateMultiFileCode() {
-        MultiFileCodeResult result = aiCodeGeneratorService.generateMultiFileCode("做个程序员鱼皮的留言板");
+        MultiFileCodeResult result = aiCodeGeneratorService.generateMultiFileCode("做个flappy bird");
         Assertions.assertNotNull(result);
         Assertions.assertNotNull(result.getHtmlCode());
         Assertions.assertNotNull(result.getCssCode());
@@ -30,11 +30,11 @@ class AiCodeGeneratorServiceTest {
 
     @Test
     void testChatMemory() {
-        var result = aiCodeGeneratorService.generateHtmlCode(1, "做个程序员鱼皮的工具网站，总代码量不超过 20 行");
+        var result = aiCodeGeneratorService.generateHtmlCode(1, "做个编程文化unix文化网站，总代码量不超过 20 行");
         Assertions.assertNotNull(result);
         result = aiCodeGeneratorService.generateHtmlCode(1, "不要生成网站，告诉我你刚刚做了什么？");
         Assertions.assertNotNull(result);
-        result = aiCodeGeneratorService.generateHtmlCode(2, "做个程序员鱼皮的工具网站，总代码量不超过 20 行");
+        result = aiCodeGeneratorService.generateHtmlCode(2, "做个编程工具网站，总代码量不超过 20 行");
         Assertions.assertNotNull(result);
         result = aiCodeGeneratorService.generateHtmlCode(2, "不要生成网站，告诉我你刚刚做了什么？");
         Assertions.assertNotNull(result);
