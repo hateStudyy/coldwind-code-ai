@@ -1,0 +1,13 @@
+# DeepSeek 模型配置（不含 API Key，可提交到 git）
+# 2026-07-24 起 deepseek-chat/deepseek-reasoner 停用，统一使用 deepseek-v4-flash
+langchain4j:
+  open-ai:
+    chat-model:
+      base-url: https://api.deepseek.com
+      model-name: deepseek-v4-flash
+    streaming-chat-model:
+      base-url: https://api.deepseek.com
+      model-name: deepseek-v4-flash
+    reasoning-streaming-chat-model:
+      base-url: https://api.deepseek.com
+      model-name: deepseek-v4-flash

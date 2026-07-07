@@ -1,6 +1,6 @@
 spring:
   profiles:
-    active: local
+    active: local,model
   application:
     name: coldwind-code-ai
   # session ??
