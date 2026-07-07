@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import java.io.IOException;
 import java.util.Map;
 
 @Hidden
@@ -60,6 +59,11 @@ public class GlobalExceptionHandler {
         String uri = request.getRequestURI();
         if ((accept != null && accept.contains("text/event-stream")) ||
                 uri.contains("/chat/gen/code")) {
+            // 如果响应已提交（SSE 流已开始），无法再写入，直接返回 true 避免二次异常
+            if (response.isCommitted()) {
+                log.warn("SSE 响应已提交，无法写入错误信息。错误码: {}, 消息: {}", errorCode, errorMessage);
+                return true;
+            }
             try {
                 // 设置SSE响应头
                 response.setContentType("text/event-stream");
@@ -82,8 +86,8 @@ public class GlobalExceptionHandler {
                 response.getWriter().flush();
                 // 表示已处理SSE请求
                 return true;
-            } catch (IOException ioException) {
-                log.error("Failed to write SSE error response", ioException);
+            } catch (Exception ex) {
+                log.error("Failed to write SSE error response", ex);
                 // 即使写入失败，也表示这是SSE请求
                 return true;
             }

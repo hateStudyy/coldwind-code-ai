@@ -36,8 +36,9 @@ public class ChatHistory implements Serializable {
     private Long id;
 
     /**
-     * 消息
+     * 消息（AI生成内容可能很长，用 MEDIUMTEXT 存储，最大 16MB）
      */
+    @Column("message")
     private String message;
 
     /**
