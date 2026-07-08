@@ -4,14 +4,12 @@ import cn.hutool.json.JSONObject;
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
 import dev.langchain4j.agent.tool.ToolMemoryId;
-import in.yumi.coldwindcodeai.constant.AppConstant;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 /**
  * 文件删除工具
@@ -28,12 +26,7 @@ public class FileDeleteTool extends BaseTool {
             @ToolMemoryId Long appId
     ) {
         try {
-            Path path = Paths.get(relativeFilePath);
-            if (!path.isAbsolute()) {
-                String projectDirName = "vue_project_" + appId;
-                Path projectRoot = Paths.get(AppConstant.CODE_OUTPUT_ROOT_DIR, projectDirName);
-                path = projectRoot.resolve(relativeFilePath);
-            }
+            Path path = resolveProjectPath(relativeFilePath, appId);
             if (!Files.exists(path)) {
                 return "警告：文件不存在，无需删除 - " + relativeFilePath;
             }
@@ -48,7 +41,7 @@ public class FileDeleteTool extends BaseTool {
             Files.delete(path);
             log.info("成功删除文件: {}", path.toAbsolutePath());
             return "文件删除成功: " + relativeFilePath;
-        } catch (IOException e) {
+        } catch (IOException | IllegalArgumentException e) {
             String errorMessage = "删除文件失败: " + relativeFilePath + ", 错误: " + e.getMessage();
             log.error(errorMessage, e);
             return errorMessage;
