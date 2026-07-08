@@ -165,6 +165,7 @@ onMounted(() => {
           <div class="hero-text">
             <h1 class="hero-title">龙宝宝代码外卖小店</h1>
             <p class="hero-description">一句话轻松创建网站应用</p>
+            <p class="cicd-test">CI/CD 自动部署测试已实现</p>
           </div>
         </div>
 
@@ -408,6 +409,13 @@ onMounted(() => {
   color: #5c6b75;
   position: relative;
   z-index: 2;
+}
+
+.cicd-test {
+  margin: 12px 0 0;
+  color: #d46b08;
+  font-size: 15px;
+  font-weight: 600;
 }
 
 /* 输入区域 */
