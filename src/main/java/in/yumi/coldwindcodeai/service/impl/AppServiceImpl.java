@@ -149,9 +149,9 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
         App app = this.getById(appId);
         ThrowUtils.throwIf(app == null, ErrorCode.NOT_FOUND_ERROR, "应用不存在");
         // 3. 验证用户是否有权限部署该应用，仅本人可以部署
-//        if (!app.getUserId().equals(loginUser.getId())) {
-//            throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "无权限部署该应用");
-//        }
+        if (!app.getUserId().equals(loginUser.getId())) {
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "无权限部署该应用");
+        }
         // 4. 检查是否已有 deployKey
         String deployKey = app.getDeployKey();
         // 没有则生成 6 位 deployKey（大小写字母 + 数字）
