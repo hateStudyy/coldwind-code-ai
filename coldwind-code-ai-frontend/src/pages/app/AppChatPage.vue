@@ -3,9 +3,9 @@
     <!-- 顶部栏 -->
     <div class="header-bar">
       <div class="header-left">
-        <h1 class="app-name">{{ appInfo?.appName || '网站生成器' }}</h1>
+        <h1 class="app-name">{{ appInfo?.appName || t('chat.defaultAppName') }}</h1>
         <a-tag v-if="appInfo?.codeGenType" color="blue" class="code-gen-type-tag">
-          {{ formatCodeGenType(appInfo.codeGenType) }}
+          {{ formatLocalizedCodeGenType(appInfo.codeGenType) }}
         </a-tag>
       </div>
       <div class="header-right">
@@ -13,7 +13,7 @@
           <template #icon>
             <InfoCircleOutlined />
           </template>
-          应用详情
+          {{ t('chat.appDetail') }}
         </a-button>
         <a-button
             type="primary"
@@ -25,13 +25,13 @@
           <template #icon>
             <DownloadOutlined />
           </template>
-          下载代码
+          {{ t('chat.downloadCode') }}
         </a-button>
         <a-button type="primary" @click="deployApp" :loading="deploying">
           <template #icon>
             <CloudUploadOutlined />
           </template>
-          部署
+          {{ t('chat.deploy') }}
         </a-button>
       </div>
     </div>
@@ -45,7 +45,7 @@
           <!-- 加载更多按钮 -->
           <div v-if="hasMoreHistory" class="load-more-container">
             <a-button type="link" @click="loadMoreHistory" :loading="loadingHistory" size="small">
-              加载更多历史消息
+              {{ t('chat.loadMoreHistory') }}
             </a-button>
           </div>
           <div v-for="(message, index) in messages" :key="index" class="message-item">
@@ -63,7 +63,7 @@
                 <MarkdownRenderer v-if="message.content" :content="message.content" />
                 <div v-if="message.loading" class="loading-indicator">
                   <a-spin size="small" />
-                  <span>AI 正在思考...</span>
+                  <span>{{ t('chat.aiThinking') }}</span>
                 </div>
               </div>
             </div>
@@ -82,7 +82,7 @@
             <div class="selected-element-info">
               <div class="element-header">
                 <span class="element-tag">
-                  选中元素：{{ selectedElementInfo.tagName.toLowerCase() }}
+                  {{ t('chat.selectedElement', { tag: selectedElementInfo.tagName.toLowerCase() }) }}
                 </span>
                 <span v-if="selectedElementInfo.id" class="element-id">
                   #{{ selectedElementInfo.id }}
@@ -93,14 +93,14 @@
               </div>
               <div class="element-details">
                 <div v-if="selectedElementInfo.textContent" class="element-item">
-                  内容: {{ selectedElementInfo.textContent.substring(0, 50) }}
+                  {{ t('chat.elementContent') }}: {{ selectedElementInfo.textContent.substring(0, 50) }}
                   {{ selectedElementInfo.textContent.length > 50 ? '...' : '' }}
                 </div>
                 <div v-if="selectedElementInfo.pagePath" class="element-item">
-                  页面路径: {{ selectedElementInfo.pagePath }}
+                  {{ t('chat.elementPagePath') }}: {{ selectedElementInfo.pagePath }}
                 </div>
                 <div class="element-item">
-                  选择器:
+                  {{ t('chat.elementSelector') }}:
                   <code class="element-selector-code">{{ selectedElementInfo.selector }}</code>
                 </div>
               </div>
@@ -111,7 +111,7 @@
         <!-- 用户消息输入框 -->
         <div class="input-container">
           <div class="input-wrapper">
-            <a-tooltip v-if="!isOwner" title="无法在别人的作品下对话哦~" placement="top">
+            <a-tooltip v-if="!isOwner" :title="t('chat.noPermission')" placement="top">
               <a-textarea
                   v-model:value="userInput"
                   :placeholder="getInputPlaceholder()"
@@ -149,7 +149,7 @@
       <!-- 右侧预览区域 -->
       <div class="preview-section" :class="{ collapsed: previewCollapsed }">
         <div class="preview-header">
-          <h3>🌐 网站预览</h3>
+          <h3>🌐 {{ t('chat.previewTitle') }}</h3>
           <div class="preview-actions">
             <a-button
                 v-if="isOwner && previewUrl"
@@ -160,25 +160,25 @@
               <template #icon>
                 <EditOutlined />
               </template>
-              {{ isEditMode ? '退出编辑' : '编辑模式' }}
+              {{ isEditMode ? t('chat.exitEdit') : t('chat.editMode') }}
             </a-button>
             <a-button v-if="previewUrl" type="default" @click="openInNewTab">
               <template #icon>
                 <ExportOutlined />
               </template>
-              新窗口打开
+              {{ t('chat.openNewWindow') }}
             </a-button>
             <!-- 收缩按钮始终显示 -->
             <a-button 
                 type="text" 
                 @click="togglePreviewCollapse"
                 class="collapse-btn"
-                :title="previewCollapsed ? '展开预览区域' : '收缩预览区域'"
+                :title="previewCollapsed ? t('chat.expandPreviewTitle') : t('chat.collapsePreviewTitle')"
             >
               <template #icon>
                 <component :is="previewCollapsed ? 'RightOutlined' : 'LeftOutlined'" />
               </template>
-              <span class="collapse-btn-text">{{ previewCollapsed ? '展开' : '收缩' }}</span>
+              <span class="collapse-btn-text">{{ previewCollapsed ? t('chat.expand') : t('chat.collapse') }}</span>
             </a-button>
           </div>
         </div>
@@ -186,13 +186,13 @@
         <div v-if="!previewCollapsed" class="preview-content">
           <div v-if="!previewUrl && !isGenerating" class="preview-placeholder">
             <div class="placeholder-icon">🌐</div>
-            <p>网站文件生成完成后将在这里展示</p>
-            <p class="placeholder-tip">点击"生成"按钮开始创建您的网站</p>
+            <p>{{ t('chat.previewPlaceholder') }}</p>
+            <p class="placeholder-tip">{{ t('chat.previewTip') }}</p>
           </div>
           <div v-else-if="isGenerating" class="preview-loading">
             <a-spin size="large" />
-            <p>正在生成网站...</p>
-            <p class="loading-tip">请稍候，AI正在为您创建网站</p>
+            <p>{{ t('chat.previewGenerating') }}</p>
+            <p class="loading-tip">{{ t('chat.previewLoadingTip') }}</p>
           </div>
           <iframe
               v-else
@@ -236,7 +236,7 @@ import {
   deleteApp as deleteAppApi,
 } from '@/api/appController'
 import { listAppChatHistory } from '@/api/chatHistoryController'
-import { CodeGenTypeEnum, formatCodeGenType } from '@/utils/codeGenTypes'
+import { CodeGenTypeEnum } from '@/utils/codeGenTypes'
 import request from '@/request'
 
 import MarkdownRenderer from '@/components/MarkdownRenderer.vue'
@@ -245,6 +245,7 @@ import DeploySuccessModal from '@/components/DeploySuccessModal.vue'
 import aiAvatar from '@/assets/aiAvatar.svg'
 import { API_BASE_URL, getStaticPreviewUrl } from '@/config/env'
 import { VisualEditor, type ElementInfo } from '@/utils/visualEditor'
+import { useI18n } from '@/i18n'
 
 import {
   CloudUploadOutlined,
@@ -260,6 +261,7 @@ import {
 const route = useRoute()
 const router = useRouter()
 const loginUserStore = useLoginUserStore()
+const { t } = useI18n()
 
 // 应用信息
 const appInfo = ref<API.AppVO>()
@@ -313,6 +315,18 @@ const isOwner = computed(() => {
 const isAdmin = computed(() => {
   return loginUserStore.loginUser.userRole === 'admin'
 })
+
+const formatLocalizedCodeGenType = (type: string | undefined): string => {
+  if (!type) {
+    return t('codeGen.unknown')
+  }
+  const labels: Record<string, string> = {
+    [CodeGenTypeEnum.HTML]: t('codeGen.html'),
+    [CodeGenTypeEnum.MULTI_FILE]: t('codeGen.multiFile'),
+    [CodeGenTypeEnum.VUE_PROJECT]: t('codeGen.vueProject'),
+  }
+  return labels[type] ?? type
+}
 
 // 应用详情相关
 const appDetailVisible = ref(false)
@@ -375,7 +389,7 @@ const loadChatHistory = async (isLoadMore = false) => {
     }
   } catch (error) {
     console.error('加载对话历史失败：', error)
-    message.error('加载对话历史失败')
+    message.error(t('chat.message.historyLoadFailed'))
   } finally {
     loadingHistory.value = false
   }
@@ -390,7 +404,7 @@ const loadMoreHistory = async () => {
 const fetchAppInfo = async () => {
   const id = route.params.id as string
   if (!id) {
-    message.error('应用ID不存在')
+    message.error(t('chat.message.appIdMissing'))
     router.push('/')
     return
   }
@@ -419,12 +433,12 @@ const fetchAppInfo = async () => {
         await sendInitialMessage(appInfo.value.initPrompt)
       }
     } else {
-      message.error('获取应用信息失败')
+      message.error(t('chat.message.fetchAppFailed'))
       router.push('/')
     }
   } catch (error) {
     console.error('获取应用信息失败：', error)
-    message.error('获取应用信息失败')
+    message.error(t('chat.message.fetchAppFailed'))
     router.push('/')
   }
 }
@@ -462,13 +476,13 @@ const sendMessage = async () => {
   let message = userInput.value.trim()
   // 如果有选中的元素，将元素信息添加到提示词中
   if (selectedElementInfo.value) {
-    let elementContext = `\n\n选中元素信息：`
+    let elementContext = `\n\n${t('chat.contextTitle')}`
     if (selectedElementInfo.value.pagePath) {
-      elementContext += `\n- 页面路径: ${selectedElementInfo.value.pagePath}`
+      elementContext += `\n- ${t('chat.contextPagePath')}: ${selectedElementInfo.value.pagePath}`
     }
-    elementContext += `\n- 标签: ${selectedElementInfo.value.tagName.toLowerCase()}\n- 选择器: ${selectedElementInfo.value.selector}`
+    elementContext += `\n- ${t('chat.contextTag')}: ${selectedElementInfo.value.tagName.toLowerCase()}\n- ${t('chat.contextSelector')}: ${selectedElementInfo.value.selector}`
     if (selectedElementInfo.value.textContent) {
-      elementContext += `\n- 当前内容: ${selectedElementInfo.value.textContent.substring(0, 100)}`
+      elementContext += `\n- ${t('chat.contextCurrentContent')}: ${selectedElementInfo.value.textContent.substring(0, 100)}`
     }
     message += elementContext
   }
@@ -573,7 +587,7 @@ const generateCode = async (userMessage: string, aiMessageIndex: number) => {
         console.error('SSE业务错误事件:', errorData)
 
         // 显示具体的错误信息
-        const errorMessage = errorData.message || '生成过程中出现错误'
+        const errorMessage = errorData.message || t('chat.message.generationError')
         messages.value[aiMessageIndex].content = `❌ ${errorMessage}`
         messages.value[aiMessageIndex].loading = false
         message.error(errorMessage)
@@ -583,7 +597,7 @@ const generateCode = async (userMessage: string, aiMessageIndex: number) => {
         eventSource?.close()
       } catch (parseError) {
         console.error('解析错误事件失败:', parseError, '原始数据:', event.data)
-        handleError(new Error('服务器返回错误'), aiMessageIndex)
+        handleError(new Error(t('chat.message.serverError')), aiMessageIndex)
       }
     })
 
@@ -601,7 +615,7 @@ const generateCode = async (userMessage: string, aiMessageIndex: number) => {
           updatePreview()
         }, 1000)
       } else {
-        handleError(new Error('SSE连接错误'), aiMessageIndex)
+        handleError(new Error(t('chat.message.sseError')), aiMessageIndex)
       }
     }
   } catch (error) {
@@ -613,9 +627,9 @@ const generateCode = async (userMessage: string, aiMessageIndex: number) => {
 // 错误处理函数
 const handleError = (error: unknown, aiMessageIndex: number) => {
   console.error('生成代码失败：', error)
-  messages.value[aiMessageIndex].content = '抱歉，生成过程中出现了错误，请重试。'
+  messages.value[aiMessageIndex].content = t('chat.message.generateErrorContent')
   messages.value[aiMessageIndex].loading = false
-  message.error('生成失败，请重试')
+  message.error(t('chat.message.generateFailed'))
   isGenerating.value = false
 }
 
@@ -639,7 +653,7 @@ const scrollToBottom = () => {
 // 下载代码
 const downloadCode = async () => {
   if (!appId.value) {
-    message.error('应用ID不存在')
+    message.error(t('chat.message.appIdMissing'))
     return
   }
   downloading.value = true
@@ -651,7 +665,7 @@ const downloadCode = async () => {
       credentials: 'include',
     })
     if (!response.ok) {
-      throw new Error(`下载失败: ${response.status}`)
+      throw new Error(t('chat.message.downloadFailedStatus', { status: response.status }))
     }
     // 获取文件名
     const contentDisposition = response.headers.get('Content-Disposition')
@@ -665,10 +679,10 @@ const downloadCode = async () => {
     link.click()
     // 清理
     URL.revokeObjectURL(downloadUrl)
-    message.success('代码下载成功')
+    message.success(t('chat.message.downloadSuccess'))
   } catch (error) {
     console.error('下载失败：', error)
-    message.error('下载失败，请重试')
+    message.error(t('chat.message.downloadFailedRetry'))
   } finally {
     downloading.value = false
   }
@@ -677,7 +691,7 @@ const downloadCode = async () => {
 // 部署应用
 const deployApp = async () => {
   if (!appId.value) {
-    message.error('应用ID不存在')
+    message.error(t('chat.message.appIdMissing'))
     return
   }
 
@@ -690,13 +704,13 @@ const deployApp = async () => {
     if (res.data.code === 0 && res.data.data) {
       deployUrl.value = res.data.data
       deployModalVisible.value = true
-      message.success('部署成功')
+      message.success(t('chat.message.deploySuccess'))
     } else {
-      message.error('部署失败：' + res.data.message)
+      message.error(t('chat.message.deployFailed') + res.data.message)
     }
   } catch (error) {
     console.error('部署失败：', error)
-    message.error('部署失败，请重试')
+    message.error(t('chat.message.deployFailedRetry'))
   } finally {
     deploying.value = false
   }
@@ -740,15 +754,15 @@ const deleteApp = async () => {
   try {
     const res = await deleteAppApi({ id: appInfo.value.id })
     if (res.data.code === 0) {
-      message.success('删除成功')
+      message.success(t('chat.message.deleteSuccess'))
       appDetailVisible.value = false
       router.push('/')
     } else {
-      message.error('删除失败：' + res.data.message)
+      message.error(t('chat.message.deleteFailed') + res.data.message)
     }
   } catch (error) {
     console.error('删除失败：', error)
-    message.error('删除失败')
+    message.error(t('chat.message.deleteFailedRetry'))
   }
 }
 
@@ -757,12 +771,12 @@ const toggleEditMode = () => {
   // 检查 iframe 是否已经加载
   const iframe = document.querySelector('.preview-iframe') as HTMLIFrameElement
   if (!iframe) {
-    message.warning('请等待页面加载完成')
+    message.warning(t('chat.message.waitPageLoaded'))
     return
   }
   // 确保 visualEditor 已初始化
   if (!previewReady.value) {
-    message.warning('请等待页面加载完成')
+    message.warning(t('chat.message.waitPageLoaded'))
     return
   }
   const newEditMode = visualEditor.toggleEditMode()
@@ -776,9 +790,9 @@ const clearSelectedElement = () => {
 
 const getInputPlaceholder = () => {
   if (selectedElementInfo.value) {
-    return `正在编辑 ${selectedElementInfo.value.tagName.toLowerCase()} 元素，描述您想要的修改...`
+    return t('chat.editInputPlaceholder', { tag: selectedElementInfo.value.tagName.toLowerCase() })
   }
-  return '请描述你想生成的网站，越详细效果越好哦'
+  return t('chat.inputPlaceholder')
 }
 
 // 页面加载时获取应用信息

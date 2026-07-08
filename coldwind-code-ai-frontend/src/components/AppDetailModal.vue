@@ -1,22 +1,22 @@
 <template>
-  <a-modal v-model:open="visible" title="应用详情" :footer="null" width="500px">
+  <a-modal v-model:open="visible" :title="t('appDetail.title')" :footer="null" width="500px">
     <div class="app-detail-content">
       <!-- 应用基础信息 -->
       <div class="app-basic-info">
         <div class="info-item">
-          <span class="info-label">创建者：</span>
+          <span class="info-label">{{ t('appDetail.creator') }}</span>
           <UserInfo :user="app?.user" size="small" />
         </div>
         <div class="info-item">
-          <span class="info-label">创建时间：</span>
+          <span class="info-label">{{ t('appDetail.createdAt') }}</span>
           <span>{{ formatTime(app?.createTime) }}</span>
         </div>
         <div class="info-item">
-          <span class="info-label">生成类型：</span>
+          <span class="info-label">{{ t('appDetail.codeGenType') }}</span>
           <a-tag v-if="app?.codeGenType" color="blue">
-            {{ formatCodeGenType(app.codeGenType) }}
+            {{ formatLocalizedCodeGenType(app.codeGenType) }}
           </a-tag>
-          <span v-else>未知类型</span>
+          <span v-else>{{ t('codeGen.unknown') }}</span>
         </div>
       </div>
 
@@ -27,19 +27,19 @@
             <template #icon>
               <EditOutlined />
             </template>
-            修改
+            {{ t('appDetail.edit') }}
           </a-button>
           <a-popconfirm
-            title="确定要删除这个应用吗？"
+            :title="t('appDetail.deleteConfirm')"
             @confirm="handleDelete"
-            ok-text="确定"
-            cancel-text="取消"
+            :ok-text="t('common.confirm')"
+            :cancel-text="t('common.cancel')"
           >
             <a-button danger>
               <template #icon>
                 <DeleteOutlined />
               </template>
-              删除
+              {{ t('appDetail.delete') }}
             </a-button>
           </a-popconfirm>
         </a-space>
@@ -53,7 +53,8 @@ import { computed } from 'vue'
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons-vue'
 import UserInfo from './UserInfo.vue'
 import { formatTime } from '@/utils/time'
-import {formatCodeGenType} from "../utils/codeGenTypes.ts";
+import { CodeGenTypeEnum } from '@/utils/codeGenTypes'
+import { useI18n } from '@/i18n'
 
 interface Props {
   open: boolean
@@ -72,6 +73,7 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<Emits>()
+const { t } = useI18n()
 
 const visible = computed({
   get: () => props.open,
@@ -84,6 +86,18 @@ const handleEdit = () => {
 
 const handleDelete = () => {
   emit('delete')
+}
+
+const formatLocalizedCodeGenType = (type: string | undefined): string => {
+  if (!type) {
+    return t('codeGen.unknown')
+  }
+  const labels: Record<string, string> = {
+    [CodeGenTypeEnum.HTML]: t('codeGen.html'),
+    [CodeGenTypeEnum.MULTI_FILE]: t('codeGen.multiFile'),
+    [CodeGenTypeEnum.VUE_PROJECT]: t('codeGen.vueProject'),
+  }
+  return labels[type] ?? type
 }
 </script>
 
