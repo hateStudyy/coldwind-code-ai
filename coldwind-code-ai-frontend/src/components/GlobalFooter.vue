@@ -2,14 +2,16 @@
   <a-layout-footer class="footer">
     <div class="footer-content">
       <p class="copyright">
-        Coldwind Code AI · 一句话，生成你想要的网站
+        {{ t('footer.slogan') }}
       </p>
     </div>
   </a-layout-footer>
 </template>
 
 <script setup lang="ts">
-// 无需额外的响应式数据
+import { useI18n } from '@/i18n'
+
+const { t } = useI18n()
 </script>
 
 <style scoped>

@@ -6,9 +6,11 @@ import { useLoginUserStore } from '@/stores/loginUser'
 import { addApp, listMyAppVoByPage, listGoodAppVoByPage } from '@/api/appController'
 import { getDeployUrl } from '@/config/env'
 import AppCard from '@/components/AppCard.vue'
+import { useI18n } from '@/i18n'
 
 const router = useRouter()
 const loginUserStore = useLoginUserStore()
+const { locale, languageOptions, setLocale, t } = useI18n()
 
 // 用户提示词
 const userPrompt = ref('')
@@ -40,12 +42,12 @@ const setPrompt = (prompt: string) => {
 // 创建应用
 const createApp = async () => {
   if (!userPrompt.value.trim()) {
-    message.warning('请输入应用描述')
+    message.warning(t('home.message.enterPrompt'))
     return
   }
 
   if (!loginUserStore.loginUser.id) {
-    message.warning('请先登录')
+    message.warning(t('home.message.loginFirst'))
     await router.push('/user/login')
     return
   }
@@ -57,16 +59,16 @@ const createApp = async () => {
     })
 
     if (res.data.code === 0 && res.data.data) {
-      message.success('应用创建成功')
+      message.success(t('home.message.createSuccess'))
       // 跳转到对话页面，确保ID是字符串类型
       const appId = String(res.data.data)
       await router.push(`/app/chat/${appId}`)
     } else {
-      message.error('创建失败：' + res.data.message)
+      message.error(t('home.message.createFailed') + res.data.message)
     }
   } catch (error) {
     console.error('创建应用失败：', error)
-    message.error('创建失败，请重试')
+    message.error(t('home.message.createRetry'))
   } finally {
     creating.value = false
   }
@@ -163,9 +165,9 @@ onMounted(() => {
         <div class="hero-left">
           <img class="hero-logo" src="@/assets/logo-large.svg" alt="龙宝宝代码外卖小店" />
           <div class="hero-text">
-            <h1 class="hero-title">龙宝宝代码外卖小店</h1>
-            <p class="hero-description">一句话轻松创建网站应用</p>
-            <p class="cicd-test">CI/CD 自动部署测试已实现</p>
+            <h1 class="hero-title">{{ t('home.title') }}</h1>
+            <p class="hero-description">{{ t('home.subtitle') }}</p>
+            <p class="cicd-test">{{ t('home.cicdTest') }}</p>
           </div>
         </div>
 
@@ -174,7 +176,7 @@ onMounted(() => {
           <div class="input-section">
             <a-textarea
               v-model:value="userPrompt"
-              placeholder="描叙您想要的网站，为您加急配送～"
+              :placeholder="t('home.promptPlaceholder')"
               :rows="4"
               :maxlength="100000"
               class="prompt-input"
@@ -194,13 +196,13 @@ onMounted(() => {
               <template #icon>
                 <span>📱</span>
               </template>
-              我的作品
+              {{ t('home.myWorks') }}
             </a-button>
             <a-button type="default" @click="scrollToFeatured" class="nav-btn">
               <template #icon>
                 <span>⭐</span>
               </template>
-              精选案例
+              {{ t('home.featured') }}
             </a-button>
           </div>
 
@@ -208,47 +210,51 @@ onMounted(() => {
           <div class="quick-actions">
             <a-button
               type="default"
-              @click="
-                setPrompt(
-                  '创建一个现代化的个人博客网站，包含文章列表、详情页、分类标签、搜索功能、评论系统和个人简介页面。采用简洁的设计风格，支持响应式布局，文章支持Markdown格式，首页展示最新文章和热门推荐。',
-                )
-              "
-              >个人博客网站</a-button
+              @click="setPrompt(t('prompt.blog'))"
+              >{{ t('home.examples.blog') }}</a-button
             >
             <a-button
               type="default"
-              @click="
-                setPrompt(
-                  '设计一个专业的企业官网，包含公司介绍、产品服务展示、新闻资讯、联系我们等页面。采用商务风格的设计，包含轮播图、产品展示卡片、团队介绍、客户案例展示，支持多语言切换和在线客服功能。',
-                )
-              "
-              >企业官网</a-button
+              @click="setPrompt(t('prompt.company'))"
+              >{{ t('home.examples.company') }}</a-button
             >
             <a-button
               type="default"
-              @click="
-                setPrompt(
-                  '构建一个功能完整的在线商城，包含商品展示、购物车、用户注册登录、订单管理、支付结算等功能。设计现代化的商品卡片布局，支持商品搜索筛选、用户评价、优惠券系统和会员积分功能。',
-                )
-              "
-              >在线商城</a-button
+              @click="setPrompt(t('prompt.shop'))"
+              >{{ t('home.examples.shop') }}</a-button
             >
             <a-button
               type="default"
-              @click="
-                setPrompt(
-                  '开发一个作品展示网站，用于展示个人或团队的设计作品、项目案例、技能展示等。包含作品分类、详情展示、技能标签、联系方式等功能，采用现代化的卡片式布局和动画效果。',
-                )
-              "
-              >作品展示网站</a-button
+              @click="setPrompt(t('prompt.portfolio'))"
+              >{{ t('home.examples.portfolio') }}</a-button
             >
           </div>
         </div>
       </div>
 
+      <!-- 多语言支持 -->
+      <div class="language-panel">
+        <div class="language-copy">
+          <span class="language-kicker">{{ t('nav.language') }}</span>
+          <h2 class="language-title">{{ t('home.language.title') }}</h2>
+          <p class="language-description">{{ t('home.language.description') }}</p>
+        </div>
+        <div class="language-options">
+          <a-button
+            v-for="option in languageOptions"
+            :key="option.locale"
+            :type="locale === option.locale ? 'primary' : 'default'"
+            class="language-choice"
+            @click="setLocale(option.locale)"
+          >
+            {{ option.label }}
+          </a-button>
+        </div>
+      </div>
+
       <!-- 我的作品 -->
       <div class="section" id="my-apps">
-        <h2 class="section-title">我的作品</h2>
+        <h2 class="section-title">{{ t('home.myWorks') }}</h2>
         <div class="app-grid">
           <AppCard
             v-for="app in myApps"
@@ -264,7 +270,7 @@ onMounted(() => {
             v-model:page-size="myAppsPage.pageSize"
             :total="myAppsPage.total"
             :show-size-changer="false"
-            :show-total="(total: number) => `共 ${total} 个应用`"
+            :show-total="(total: number) => t('home.pagination.apps', { total })"
             @change="loadMyApps"
           />
         </div>
@@ -272,7 +278,7 @@ onMounted(() => {
 
       <!-- 精选案例 -->
       <div class="section" id="featured-apps">
-        <h2 class="section-title">精选案例</h2>
+        <h2 class="section-title">{{ t('home.featured') }}</h2>
         <div class="featured-grid">
           <AppCard
             v-for="app in featuredApps"
@@ -289,7 +295,7 @@ onMounted(() => {
             v-model:page-size="featuredAppsPage.pageSize"
             :total="featuredAppsPage.total"
             :show-size-changer="false"
-            :show-total="(total: number) => `共 ${total} 个案例`"
+            :show-total="(total: number) => t('home.pagination.cases', { total })"
             @change="loadFeaturedApps"
           />
         </div>
@@ -521,6 +527,56 @@ onMounted(() => {
   box-shadow: 0 8px 25px rgba(59, 130, 246, 0.2);
 }
 
+.language-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  padding: 28px 0;
+  margin: 0 0 52px;
+  border-top: 1px solid rgba(250, 140, 22, 0.18);
+  border-bottom: 1px solid rgba(250, 140, 22, 0.18);
+}
+
+.language-copy {
+  max-width: 560px;
+}
+
+.language-kicker {
+  display: block;
+  margin-bottom: 8px;
+  color: #d46b08;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.language-title {
+  margin: 0 0 8px;
+  color: #1e293b;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.language-description {
+  margin: 0;
+  color: #5c6b75;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.language-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(120px, 1fr));
+  gap: 12px;
+  min-width: 260px;
+}
+
+.language-choice {
+  height: 40px;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
 /* 区域标题 */
 .section {
   margin-bottom: 50px;
@@ -603,6 +659,17 @@ onMounted(() => {
 
   .nav-btn {
     width: 100%;
+  }
+
+  .language-panel {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .language-options {
+    grid-template-columns: 1fr;
+    min-width: 0;
   }
 }
 </style>
