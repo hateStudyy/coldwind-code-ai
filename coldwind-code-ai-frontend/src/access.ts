@@ -1,6 +1,7 @@
 import { useLoginUserStore } from '@/stores/loginUser'
 import { message } from 'ant-design-vue'
 import router from '@/router'
+import { t } from '@/i18n'
 
 // 是否为首次获取登录用户
 let firstFetchLoginUser = true
@@ -20,7 +21,7 @@ router.beforeEach(async (to, from, next) => {
   const toUrl = to.fullPath
   if (toUrl.startsWith('/admin')) {
     if (!loginUser || loginUser.userRole !== 'admin') {
-      message.error('没有权限')
+      message.error(t('auth.noPermission'))
       next(`/user/login?redirect=${to.fullPath}`)
       return
     }

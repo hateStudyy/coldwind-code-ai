@@ -1,6 +1,7 @@
 import axios from 'axios'
 import { message } from 'ant-design-vue'
 import { API_BASE_URL } from '@/config/env'
+import { t } from '@/i18n'
 
 // 创建 Axios 实例
 const myAxios = axios.create({
@@ -32,7 +33,7 @@ myAxios.interceptors.response.use(
         !response.request.responseURL.includes('user/get/login') &&
         !window.location.pathname.includes('/user/login')
       ) {
-        message.warning('请先登录')
+        message.warning(t('home.message.loginFirst'))
         window.location.href = `/user/login?redirect=${window.location.href}`
       }
     }

@@ -7,8 +7,8 @@
       </div>
       <div class="app-overlay">
         <a-space>
-          <a-button type="primary" @click="handleViewChat">查看对话</a-button>
-          <a-button v-if="app.deployKey" type="default" @click="handleViewWork">查看作品</a-button>
+          <a-button type="primary" @click="handleViewChat">{{ t('appCard.viewChat') }}</a-button>
+          <a-button v-if="app.deployKey" type="default" @click="handleViewWork">{{ t('appCard.viewWork') }}</a-button>
         </a-space>
       </div>
     </div>
@@ -19,9 +19,9 @@
         </a-avatar>
       </div>
       <div class="app-info-right">
-        <h3 class="app-title">{{ app.appName || '未命名应用' }}</h3>
+        <h3 class="app-title">{{ app.appName || t('appCard.unnamed') }}</h3>
         <p class="app-author">
-          {{ app.user?.userName || (featured ? '官方' : '未知用户') }}
+          {{ app.user?.userName || (featured ? t('appCard.official') : t('appCard.unknownUser')) }}
         </p>
       </div>
     </div>
@@ -29,6 +29,8 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from '@/i18n'
+
 interface Props {
   app: API.AppVO
   featured?: boolean
@@ -44,6 +46,7 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<Emits>()
+const { t } = useI18n()
 
 const handleViewChat = () => {
   emit('view-chat', props.app.id)
