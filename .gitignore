@@ -45,3 +45,5 @@ application-prod.yml
 /tmp/
 /myhtml/
 /logs/
+NOTES.md
+BUGS.md

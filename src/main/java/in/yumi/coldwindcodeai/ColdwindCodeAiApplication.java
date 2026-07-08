@@ -18,3 +18,5 @@ public class ColdwindCodeAiApplication {
     }
 
 }
+// todo 用ai尝试spring security
+// todo 用cc在idea里生成一个完整的企业项目应该是微服务项目有crm 定时任务 调度任务等等系统的
