@@ -63,7 +63,7 @@ public class ChatHistoryServiceImpl extends ServiceImpl<ChatHistoryMapper, ChatH
                     chatMemory.add(UserMessage.from(history.getMessage()));
                     loadedCount++;
                 } else if (ChatHistoryMessageTypeEnum.AI.getValue().equals(history.getMessageType())) {
-                    chatMemory.add(AiMessage.from(history.getMessage()));
+                    chatMemory.add(AiMessage.from(ChatHistoryMemoryCompressor.compactAiMessage(history.getMessage())));
                     loadedCount++;
                 }
             }
