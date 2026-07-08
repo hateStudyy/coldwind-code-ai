@@ -1,0 +1,58 @@
+name: Deploy Frontend
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "coldwind-code-ai-frontend/**"
+      - ".github/workflows/deploy-frontend.yml"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: coldwind-code-ai-frontend/package-lock.json
+
+      - name: Install and build
+        working-directory: coldwind-code-ai-frontend
+        run: |
+          npm ci
+          npm run build
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p "${{ secrets.SERVER_PORT }}" "${{ secrets.SERVER_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Upload dist
+        run: |
+          rsync -az --delete \
+            -e "ssh -i ~/.ssh/deploy_key -p ${{ secrets.SERVER_PORT }}" \
+            coldwind-code-ai-frontend/dist/ \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/tmp/coldwind-code-ai-frontend-dist/
+
+      - name: Replace frontend
+        run: |
+          ssh -i ~/.ssh/deploy_key -p "${{ secrets.SERVER_PORT }}" \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} \
+            "sudo mkdir -p /opt/1panel/www/sites/coldwind-code-ai/index/dist.backup && \
+             sudo rm -rf /opt/1panel/www/sites/coldwind-code-ai/index/dist.backup/* && \
+             sudo cp -a /opt/1panel/www/sites/coldwind-code-ai/index/dist/. /opt/1panel/www/sites/coldwind-code-ai/index/dist.backup/ 2>/dev/null || true && \
+             sudo rm -rf /opt/1panel/www/sites/coldwind-code-ai/index/dist/* && \
+             sudo cp -a /tmp/coldwind-code-ai-frontend-dist/. /opt/1panel/www/sites/coldwind-code-ai/index/dist/"
+
+      - name: Verify
+        run: |
+          curl -f -I http://${{ secrets.SERVER_HOST }}/
