@@ -58,7 +58,39 @@ CODE_DEPLOY_HOST=http://134.175.119.8/dist
 
 ## systemd 服务模板
 
-创建服务文件：
+Java 启动命令写在 systemd 服务文件的 `ExecStart` 里。仓库已经提供模板：
+
+```bash
+deploy/systemd/coldwind-code-ai.service
+```
+
+核心内容：
+
+```ini
+Environment=PATH=/root/.sdkman/candidates/java/21.0.8-amzn/bin:/root/.nvm/versions/node/v22.19.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ExecStart=/root/.sdkman/candidates/java/21.0.8-amzn/bin/java -jar /opt/1panel/www/sites/coldwind-code-ai/coldwind-code-ai-0.0.1-SNAPSHOT.jar --spring.profiles.active=${SPRING_PROFILES_ACTIVE}
+```
+
+当前后端启动后还会执行 `npx serve` 启动一个 demo 静态服务，所以 systemd 的 `PATH` 里也需要包含 Node 路径。
+
+安装到服务器：
+
+```bash
+sudo install -m 0644 deploy/systemd/coldwind-code-ai.service /etc/systemd/system/coldwind-code-ai.service
+sudo systemctl daemon-reload
+sudo systemctl enable coldwind-code-ai
+sudo systemctl start coldwind-code-ai
+```
+
+也可以在服务器项目目录执行安装脚本：
+
+```bash
+./scripts/install-backend-systemd.sh
+```
+
+如果脚本发现已有手动 `java -jar` 进程占用 8999，会先提示进程号并退出；第一次迁移时需要先停掉旧进程，再执行 `sudo systemctl start coldwind-code-ai`。
+
+如果要手动创建服务文件：
 
 ```bash
 sudo nano /etc/systemd/system/coldwind-code-ai.service
@@ -69,13 +101,19 @@ sudo nano /etc/systemd/system/coldwind-code-ai.service
 ```ini
 [Unit]
 Description=Coldwind Code AI backend
-After=network.target
+After=network-online.target
+Wants=network-online.target
 
 [Service]
 Type=simple
 User=root
 WorkingDirectory=/opt/1panel/www/sites/coldwind-code-ai
-EnvironmentFile=/etc/coldwind-code-ai/coldwind-code-ai.env
+Environment=JAVA_HOME=/root/.sdkman/candidates/java/21.0.8-amzn
+Environment=PATH=/root/.sdkman/candidates/java/21.0.8-amzn/bin:/root/.nvm/versions/node/v22.19.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+Environment=SPRING_PROFILES_ACTIVE=prod
+EnvironmentFile=-/etc/coldwind-code-ai/coldwind-code-ai.env
+ExecStartPre=/usr/bin/test -x /root/.sdkman/candidates/java/21.0.8-amzn/bin/java
+ExecStartPre=/usr/bin/test -x /root/.nvm/versions/node/v22.19.0/bin/npx
 ExecStart=/root/.sdkman/candidates/java/21.0.8-amzn/bin/java -jar /opt/1panel/www/sites/coldwind-code-ai/coldwind-code-ai-0.0.1-SNAPSHOT.jar --spring.profiles.active=${SPRING_PROFILES_ACTIVE}
 Restart=always
 RestartSec=5
