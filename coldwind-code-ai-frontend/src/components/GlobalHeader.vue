@@ -1,65 +1,61 @@
 <template>
   <a-layout-header class="header">
-    <a-row :wrap="false">
+    <div class="header-inner">
       <!-- 左侧：Logo和标题 -->
-      <a-col flex="360px">
-        <RouterLink to="/">
-          <div class="header-left">
-            <img class="logo" src="@/assets/logo.svg" alt="Coldwind Logo" />
-            <h1 class="site-title">Coldwind Code AI</h1>
-          </div>
-        </RouterLink>
-      </a-col>
+      <RouterLink to="/" class="brand">
+        <img class="logo" src="@/assets/logo.svg" alt="WindCode Logo" />
+        <span class="site-title">WindCode</span>
+      </RouterLink>
+
       <!-- 中间：导航菜单 -->
-      <a-col flex="auto">
-        <a-menu
-          v-model:selectedKeys="selectedKeys"
-          mode="horizontal"
-          :items="menuItems"
-          @click="handleMenuClick"
-        />
-      </a-col>
+      <a-menu
+        v-model:selectedKeys="selectedKeys"
+        mode="horizontal"
+        :items="menuItems"
+        @click="handleMenuClick"
+        class="header-nav"
+      />
+
       <!-- 右侧：用户操作区域 -->
-      <a-col>
-        <div class="user-login-status">
+      <div class="header-actions">
+        <a-dropdown placement="bottomRight">
+          <a-button class="lang-btn">
+            <GlobalOutlined />
+            <span class="lang-label">{{ currentLanguage.shortLabel }}</span>
+          </a-button>
+          <template #overlay>
+            <a-menu @click="handleLanguageChange">
+              <a-menu-item v-for="option in languageOptions" :key="option.locale">
+                <span class="language-option">
+                  <span>{{ option.label }}</span>
+                  <CheckOutlined v-if="option.locale === locale" />
+                </span>
+              </a-menu-item>
+            </a-menu>
+          </template>
+        </a-dropdown>
+
+        <template v-if="loginUserStore.loginUser.id">
           <a-dropdown placement="bottomRight">
-            <a-button class="language-button">
-              <GlobalOutlined />
-              <span>{{ currentLanguage.label }}</span>
-            </a-button>
+            <a-space class="user-trigger">
+              <a-avatar :src="loginUserStore.loginUser.userAvatar" :size="32" />
+              <span class="user-name">{{ loginUserStore.loginUser.userName ?? t('nav.anonymous') }}</span>
+            </a-space>
             <template #overlay>
-              <a-menu @click="handleLanguageChange">
-                <a-menu-item v-for="option in languageOptions" :key="option.locale">
-                  <span class="language-option">
-                    <span>{{ option.label }}</span>
-                    <CheckOutlined v-if="option.locale === locale" />
-                  </span>
+              <a-menu>
+                <a-menu-item @click="doLogout">
+                  <LogoutOutlined />
+                  {{ t('nav.logout') }}
                 </a-menu-item>
               </a-menu>
             </template>
           </a-dropdown>
-          <div v-if="loginUserStore.loginUser.id">
-            <a-dropdown>
-              <a-space>
-                <a-avatar :src="loginUserStore.loginUser.userAvatar" />
-                {{ loginUserStore.loginUser.userName ?? t('nav.anonymous') }}
-              </a-space>
-              <template #overlay>
-                <a-menu>
-                  <a-menu-item @click="doLogout">
-                    <LogoutOutlined />
-                    {{ t('nav.logout') }}
-                  </a-menu-item>
-                </a-menu>
-              </template>
-            </a-dropdown>
-          </div>
-          <div v-else>
-            <a-button type="primary" href="/user/login">{{ t('nav.login') }}</a-button>
-          </div>
-        </div>
-      </a-col>
-    </a-row>
+        </template>
+        <a-button v-else type="primary" size="small" href="/user/login" class="login-btn">
+          {{ t('nav.login') }}
+        </a-button>
+      </div>
+    </div>
   </a-layout-header>
 </template>
 
@@ -75,14 +71,12 @@ import { type Locale, useI18n } from '@/i18n'
 const loginUserStore = useLoginUserStore()
 const router = useRouter()
 const { locale, languageOptions, currentLanguage, setLocale, t } = useI18n()
-// 当前选中菜单
+
 const selectedKeys = ref<string[]>(['/'])
-// 监听路由变化，更新当前选中菜单
-router.afterEach((to, from, next) => {
+router.afterEach((to) => {
   selectedKeys.value = [to.path]
 })
 
-// 菜单配置项
 const originItems = computed<MenuProps['items']>(() => [
   {
     key: '/',
@@ -107,7 +101,6 @@ const originItems = computed<MenuProps['items']>(() => [
   },
 ])
 
-// 过滤菜单项
 const filterMenus = (menus = [] as MenuProps['items']) => {
   return menus?.filter((menu) => {
     const menuKey = menu?.key as string
@@ -121,14 +114,11 @@ const filterMenus = (menus = [] as MenuProps['items']) => {
   })
 }
 
-// 展示在菜单的路由数组
 const menuItems = computed<MenuProps['items']>(() => filterMenus(originItems.value))
 
-// 处理菜单点击
 const handleMenuClick: MenuProps['onClick'] = (e) => {
   const key = e.key as string
   selectedKeys.value = [key]
-  // 跳转到对应页面
   if (key.startsWith('/')) {
     router.push(key)
   }
@@ -138,13 +128,10 @@ const handleLanguageChange: MenuProps['onClick'] = (e) => {
   setLocale(e.key as Locale)
 }
 
-// 退出登录
 const doLogout = async () => {
   const res = await userLogout()
   if (res.data.code === 0) {
-    loginUserStore.setLoginUser({
-      userName: '未登录',
-    })
+    loginUserStore.setLoginUser({ userName: '未登录' })
     message.success(t('auth.logoutSuccess'))
     await router.push('/user/login')
   } else {
@@ -155,60 +142,152 @@ const doLogout = async () => {
 
 <style scoped>
 .header {
-  background: #fff;
-  padding: 0 24px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid rgba(250, 140, 22, 0.12);
+  padding: 0 32px;
+  height: 64px;
+  line-height: 64px;
+  box-shadow: 0 1px 20px rgba(0, 0, 0, 0.04);
 }
 
-.header-left {
+.header-inner {
   display: flex;
   align-items: center;
-  gap: 12px;
+  max-width: 1280px;
+  margin: 0 auto;
+  height: 100%;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  flex-shrink: 0;
+  margin-right: 40px;
 }
 
 .logo {
-  height: 48px;
-  width: 48px;
+  height: 36px;
+  width: 36px;
 }
 
 .site-title {
-  margin: 0;
-  font-size: 18px;
-  color: #1890ff;
-  white-space: nowrap; /* 防止标题换行 */
+  font-size: 20px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #fa8c16, #ff9c2a);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.ant-menu-horizontal {
+.header-nav {
+  flex: 1;
   border-bottom: none !important;
+  background: transparent !important;
+  line-height: 64px;
 }
 
-.user-login-status {
+.header-nav :deep(.ant-menu-item-selected) {
+  color: #fa8c16 !important;
+}
+
+.header-nav :deep(.ant-menu-item-selected::after) {
+  border-bottom-color: #fa8c16 !important;
+}
+
+.header-nav :deep(.ant-menu-item:hover) {
+  color: #fa8c16 !important;
+}
+
+.header-actions {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-shrink: 0;
 }
 
-.language-button {
+.lang-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  border-color: rgba(250, 140, 22, 0.28);
+  gap: 4px;
+  border: 1px solid rgba(250, 140, 22, 0.2);
   color: #d46b08;
+  border-radius: 8px;
+  height: 36px;
+  padding: 0 10px;
+}
+
+.lang-btn:hover {
+  border-color: rgba(250, 140, 22, 0.5) !important;
+  color: #fa8c16 !important;
+}
+
+.lang-label {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.user-trigger {
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.user-trigger:hover {
+  background: rgba(250, 140, 22, 0.06);
+}
+
+.user-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #334155;
+}
+
+.login-btn {
+  border-radius: 8px;
+  height: 36px;
+  font-weight: 600;
+  background: linear-gradient(135deg, #fa8c16, #ff9c2a);
+  border: none;
+}
+
+.login-btn:hover {
+  background: linear-gradient(135deg, #e07b10, #fa8c16) !important;
 }
 
 .language-option {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-width: 110px;
+  min-width: 120px;
   gap: 16px;
 }
 
 @media (max-width: 768px) {
-  .site-title {
-    font-size: 16px;
+  .header {
+    padding: 0 16px;
   }
 
-  .language-button span:last-child {
+  .site-title {
+    display: none;
+  }
+
+  .brand {
+    margin-right: 16px;
+  }
+
+  .lang-label {
+    display: none;
+  }
+
+  .user-name {
     display: none;
   }
 }
