@@ -1,0 +1,126 @@
+name: Deploy Backend
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "src/**"
+      - "pom.xml"
+      - "mvnw"
+      - "mvnw.cmd"
+      - ".mvn/**"
+      - "deploy/systemd/**"
+      - "scripts/install-backend-systemd.sh"
+      - ".github/workflows/deploy-backend.yml"
+
+concurrency:
+  group: deploy-backend-production
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    env:
+      APP_DIR: /opt/1panel/www/sites/coldwind-code-ai
+      BUILD_DIR: /tmp/coldwind-code-ai-backend-src
+      JAR_NAME: coldwind-code-ai-0.0.1-SNAPSHOT.jar
+      JAVA_HOME: /root/.sdkman/candidates/java/21.0.8-amzn
+      NODE_HOME: /root/.nvm/versions/node/v22.19.0
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p "${{ secrets.SERVER_PORT }}" "${{ secrets.SERVER_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Upload backend source
+        run: |
+          rsync -az --delete \
+            --exclude=".git/" \
+            --exclude=".github/" \
+            --exclude=".idea/" \
+            --exclude=".vscode/" \
+            --exclude="target/" \
+            --exclude="tmp/" \
+            --exclude="logs/" \
+            --exclude="myhtml/" \
+            --exclude="coldwind-code-ai-frontend/" \
+            --exclude="coldwind-code-ai-microservice/" \
+            --exclude="src/main/resources/application-local.yml" \
+            --exclude="src/main/resources/application-prod.yml" \
+            -e "ssh -i ~/.ssh/deploy_key -p ${{ secrets.SERVER_PORT }}" \
+            ./ \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:${{ env.BUILD_DIR }}/
+
+      - name: Build and deploy
+        run: |
+          ssh -i ~/.ssh/deploy_key -p "${{ secrets.SERVER_PORT }}" \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} \
+            "APP_DIR='${{ env.APP_DIR }}' BUILD_DIR='${{ env.BUILD_DIR }}' JAR_NAME='${{ env.JAR_NAME }}' JAVA_HOME='${{ env.JAVA_HOME }}' NODE_HOME='${{ env.NODE_HOME }}' bash -s" <<'EOF'
+          set -euo pipefail
+
+          export PATH="${JAVA_HOME}/bin:${NODE_HOME}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+          if ! sudo test -x "${JAVA_HOME}/bin/java"; then
+            echo "Java executable not found: ${JAVA_HOME}/bin/java" >&2
+            exit 1
+          fi
+
+          if ! sudo test -x "${NODE_HOME}/bin/npx"; then
+            echo "npx executable not found: ${NODE_HOME}/bin/npx" >&2
+            exit 1
+          fi
+
+          if ! sudo test -s /etc/coldwind-code-ai/application-prod.yml; then
+            echo "Production config not found: /etc/coldwind-code-ai/application-prod.yml" >&2
+            exit 1
+          fi
+
+          cd "${BUILD_DIR}"
+          chmod +x mvnw
+
+          sudo rm -rf target
+          sudo env "JAVA_HOME=${JAVA_HOME}" "PATH=${PATH}" ./mvnw -B -ntp -DskipTests -Dmaven.test.skip=true package
+          sudo chown -R "$(id -u):$(id -g)" target .mvn 2>/dev/null || true
+
+          if ! test -s "target/${JAR_NAME}"; then
+            echo "Built jar not found: target/${JAR_NAME}" >&2
+            exit 1
+          fi
+
+          sudo install -m 0644 deploy/systemd/coldwind-code-ai.service /etc/systemd/system/coldwind-code-ai.service
+          sudo systemctl daemon-reload
+          sudo systemctl enable coldwind-code-ai
+
+          if sudo test -f "${APP_DIR}/${JAR_NAME}"; then
+            sudo cp "${APP_DIR}/${JAR_NAME}" "${APP_DIR}/${JAR_NAME}.bak"
+          fi
+
+          sudo install -m 0644 "target/${JAR_NAME}" "${APP_DIR}/${JAR_NAME}"
+          sudo systemctl restart coldwind-code-ai
+
+          for _ in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8999/api/health/; then
+              exit 0
+            fi
+            sleep 2
+          done
+
+          echo "Backend health check failed, rolling back jar if backup exists." >&2
+          sudo journalctl -u coldwind-code-ai -n 120 --no-pager >&2 || true
+
+          if sudo test -f "${APP_DIR}/${JAR_NAME}.bak"; then
+            sudo cp "${APP_DIR}/${JAR_NAME}.bak" "${APP_DIR}/${JAR_NAME}"
+            sudo systemctl restart coldwind-code-ai
+          fi
+
+          exit 1
+          EOF

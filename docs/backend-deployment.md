@@ -22,9 +22,17 @@
 └── log/                        # Nginx 站点日志
 ```
 
-## 环境变量文件
+## 服务器私有配置
 
-不要把生产密钥提交到 Git。建议在服务器创建：
+不要把生产密钥提交到 Git。当前生产配置放在服务器：
+
+```bash
+/etc/coldwind-code-ai/application-prod.yml
+```
+
+当前服务器已经从旧 jar 抽取了一份生产配置到这个位置。后续后端 CI/CD 从 GitHub 源码构建 jar 时，不需要仓库包含 `application-prod.yml`。
+
+如果后续把 `application-prod.yml` 改成环境变量占位，再在服务器创建：
 
 ```bash
 sudo mkdir -p /etc/coldwind-code-ai
@@ -54,7 +62,7 @@ PEXELS_API_KEY=change_me
 CODE_DEPLOY_HOST=http://134.175.119.8/dist
 ```
 
-后续应把 `application-prod.yml` 改成 `${DB_URL}`、`${DEEPSEEK_API_KEY}` 这类占位，真实值只留在服务器。
+后续应继续把 `application-prod.yml` 里的敏感值改成 `${DB_URL}`、`${DEEPSEEK_API_KEY}` 这类占位，真实值只留在服务器环境变量文件。
 
 ## systemd 服务模板
 
@@ -68,7 +76,7 @@ deploy/systemd/coldwind-code-ai.service
 
 ```ini
 Environment=PATH=/root/.sdkman/candidates/java/21.0.8-amzn/bin:/root/.nvm/versions/node/v22.19.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-ExecStart=/root/.sdkman/candidates/java/21.0.8-amzn/bin/java -jar /opt/1panel/www/sites/coldwind-code-ai/coldwind-code-ai-0.0.1-SNAPSHOT.jar --spring.profiles.active=${SPRING_PROFILES_ACTIVE}
+ExecStart=/root/.sdkman/candidates/java/21.0.8-amzn/bin/java -jar /opt/1panel/www/sites/coldwind-code-ai/coldwind-code-ai-0.0.1-SNAPSHOT.jar --spring.profiles.active=${SPRING_PROFILES_ACTIVE} --spring.config.additional-location=file:/etc/coldwind-code-ai/
 ```
 
 当前后端启动后还会执行 `npx serve` 启动一个 demo 静态服务，所以 systemd 的 `PATH` 里也需要包含 Node 路径。
@@ -114,7 +122,7 @@ Environment=SPRING_PROFILES_ACTIVE=prod
 EnvironmentFile=-/etc/coldwind-code-ai/coldwind-code-ai.env
 ExecStartPre=/usr/bin/test -x /root/.sdkman/candidates/java/21.0.8-amzn/bin/java
 ExecStartPre=/usr/bin/test -x /root/.nvm/versions/node/v22.19.0/bin/npx
-ExecStart=/root/.sdkman/candidates/java/21.0.8-amzn/bin/java -jar /opt/1panel/www/sites/coldwind-code-ai/coldwind-code-ai-0.0.1-SNAPSHOT.jar --spring.profiles.active=${SPRING_PROFILES_ACTIVE}
+ExecStart=/root/.sdkman/candidates/java/21.0.8-amzn/bin/java -jar /opt/1panel/www/sites/coldwind-code-ai/coldwind-code-ai-0.0.1-SNAPSHOT.jar --spring.profiles.active=${SPRING_PROFILES_ACTIVE} --spring.config.additional-location=file:/etc/coldwind-code-ai/
 Restart=always
 RestartSec=5
 SuccessExitStatus=143
@@ -169,18 +177,23 @@ sudo systemctl restart coldwind-code-ai
 curl -f http://127.0.0.1:8999/api/health/
 ```
 
-## GitHub Actions 接入建议
+## GitHub Actions 接入
 
-后端 CI/CD 可以后续新增独立 workflow：
+仓库已提供后端部署 workflow：
+
+```bash
+.github/workflows/deploy-backend.yml
+```
+
+当前采用服务器端构建方案，避免从 GitHub runner 上传 100MB 以上 fat jar 超时：
 
 1. `actions/checkout`
-2. `actions/setup-java` 使用 Java 21
-3. `./mvnw -DskipTests package`
-4. 上传 jar 到服务器 `/tmp`
-5. 服务器备份旧 jar
-6. 替换 jar
-7. `sudo systemctl restart coldwind-code-ai`
-8. `curl -f http://127.0.0.1:8999/api/health/`
-9. 失败时复制 `.bak` 回滚并再次重启
+2. 通过 SSH/rsync 上传后端源码到服务器 `/tmp/coldwind-code-ai-backend-src`
+3. 在服务器使用 `/root/.sdkman/candidates/java/21.0.8-amzn` 执行 Maven 打包
+4. 备份旧 jar 为 `.bak`
+5. 替换 `/opt/1panel/www/sites/coldwind-code-ai/coldwind-code-ai-0.0.1-SNAPSHOT.jar`
+6. `sudo systemctl restart coldwind-code-ai`
+7. `curl -f http://127.0.0.1:8999/api/health/`
+8. 健康检查失败时复制 `.bak` 回滚并再次重启
 
 GitHub Secrets 只应保存部署用 SSH 信息，不保存数据库、Redis、AI、COS 等业务密钥。
